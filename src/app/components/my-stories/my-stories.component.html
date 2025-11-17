@@ -1,0 +1,60 @@
+<div class="my-stories-container">
+  <header class="page-header">
+    <h1 class="page-title">My Stories</h1>
+    <div class="header-actions">
+      <button class="btn-secondary" routerLink="/feed">Back to Feed</button>
+      <button class="btn-primary" routerLink="/create-story">Create New Story</button>
+    </div>
+  </header>
+
+  <div class="stories-content">
+    <div *ngIf="isLoading" class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Loading your stories...</p>
+    </div>
+
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="!isLoading && stories.length === 0 && !errorMessage" class="empty-state">
+      <p class="empty-icon">📝</p>
+      <h3>No stories yet</h3>
+      <p>You haven't published any stories. Share your first story with the community!</p>
+      <button class="btn-primary" routerLink="/create-story">Create Your First Story</button>
+    </div>
+
+    <div class="stories-grid">
+      <article class="story-card" *ngFor="let story of stories">
+        <div class="story-header">
+          <div>
+            <h2 class="story-title">{{ story.title }}</h2>
+            <div class="story-meta">
+              <span>📍 {{ story.locality_name }}</span>
+              <span class="separator">•</span>
+              <span>📅 {{ formatDate(story.created_at) }}</span>
+            </div>
+          </div>
+          <span class="status-badge" [ngClass]="getStatusClass(story.status)">
+            {{ getStatusLabel(story.status) }}
+          </span>
+        </div>
+
+        <div class="story-content">
+          <p>{{ story.content }}</p>
+        </div>
+
+        <div class="story-media" *ngIf="story.media_files && story.media_files.length > 0">
+          <div class="media-count">
+            📎 {{ story.media_files.length }} media file{{ story.media_files.length > 1 ? 's' : '' }}
+          </div>
+        </div>
+
+        <div class="moderator-notes" *ngIf="story.moderator_notes">
+          <strong>Moderator Notes:</strong>
+          <p>{{ story.moderator_notes }}</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</div>
