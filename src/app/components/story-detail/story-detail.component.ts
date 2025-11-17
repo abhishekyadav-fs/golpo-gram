@@ -47,6 +47,12 @@ export class StoryDetailComponent implements OnInit {
     });
   }
 
+  formatDuration(seconds: number): string {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
   goBack(): void {
     this.router.navigate(['/feed']);
   }

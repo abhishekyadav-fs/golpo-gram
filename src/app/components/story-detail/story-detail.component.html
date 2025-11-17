@@ -42,7 +42,25 @@
     </header>
 
     <div class="story-content">
-      <p class="story-text">{{ story.content }}</p>
+      <!-- Audio Story Player -->
+      <div *ngIf="story.story_type === 'audio' && story.audio_url" class="audio-story-section">
+        <div class="audio-player-container">
+          <h3>Audio Story</h3>
+          <audio controls class="audio-player">
+            <source [src]="story.audio_url" type="audio/webm">
+            <source [src]="story.audio_url" type="audio/mpeg">
+            <source [src]="story.audio_url" type="audio/wav">
+            Your browser does not support the audio element.
+          </audio>
+          <div class="audio-info" *ngIf="story.audio_duration">
+            <span class="material-symbols-outlined">schedule</span>
+            <span>Duration: {{ formatDuration(story.audio_duration) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Text Content -->
+      <p *ngIf="story.content" class="story-text">{{ story.content }}</p>
     </div>
 
     <footer class="story-footer">

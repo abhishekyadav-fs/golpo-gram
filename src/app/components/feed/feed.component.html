@@ -103,10 +103,14 @@
           </span>
         </div>
 
-        <div class="story-content" [class.truncated]="story.id && !expandedStories.has(story.id) && story.content.length > 200">
-          <p>{{ story.id ? getPreviewContent(story.content, story.id) : story.content }}</p>
+        <div class="story-content" [class.truncated]="story.id && story.content && !expandedStories.has(story.id) && story.content.length > 200">
+          <p *ngIf="story.content">{{ story.id ? getPreviewContent(story.content, story.id) : story.content }}</p>
+          <p *ngIf="!story.content && story.story_type === 'audio'" class="audio-indicator">
+            <span class="material-symbols-outlined">audio_file</span>
+            Audio Story
+          </p>
           <button 
-            *ngIf="story.id && story.content.length > 200" 
+            *ngIf="story.id && story.content && story.content.length > 200" 
             class="read-more-btn" 
             (click)="toggleExpand($event, story.id)"
           >

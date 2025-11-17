@@ -1,7 +1,7 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { Router } from '@angular/router';
 import { StoryService } from '../../services/story.service';
 import { LocalityService } from '../../services/locality.service';
 import { AuthService } from '../../services/auth.service';
@@ -10,7 +10,7 @@ import { Story, Locality } from '../../models/story.model';
 @Component({
   selector: 'app-feed',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule],
   templateUrl: './feed.component.html',
   styleUrls: ['./feed.component.scss']
 })
@@ -150,14 +150,16 @@ export class FeedComponent implements OnInit {
     }
   }
 
-  getPreviewContent(content: string, storyId: string): string {
+  getPreviewContent(content: string | undefined, storyId: string): string {
+    if (!content) return '';
     if (this.expandedStories.has(storyId) || content.length <= 200) {
       return content;
     }
     return content.substring(0, 200) + '...';
   }
 
-  shouldShowReadMore(content: string, storyId: string): boolean {
+  shouldShowReadMore(content: string | undefined, storyId: string): boolean {
+    if (!content) return false;
     return content.length > 200 && !this.expandedStories.has(storyId);
   }
 
