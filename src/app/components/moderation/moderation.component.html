@@ -1,8 +1,8 @@
 <div class="moderation-container">
-  <header class="mod-header">
+  <div class="mod-actions">
     <h1 class="mod-title">Story Moderation</h1>
-    <button class="btn-secondary" routerLink="/feed">Back to Feed</button>
-  </header>
+    <button class="btn-icon" routerLink="/feed" title="Home">home</button>
+  </div>
 
   <div class="mod-content">
     <div class="pending-list">
@@ -28,9 +28,9 @@
         >
           <h3 class="story-item-title">{{ story.title }}</h3>
           <div class="story-item-meta">
-            <span>📍 {{ story.locality_name }}</span>
-            <span>👤 {{ story.author_name }}</span>
-            <span>📅 {{ formatDate(story.created_at) }}</span>
+            <span><span class="material-symbols-outlined">location_on</span> {{ story.locality_name }}</span>
+            <span><span class="material-symbols-outlined">person</span> {{ story.author_name }}</span>
+            <span><span class="material-symbols-outlined">calendar_today</span> {{ formatDate(story.created_at) }}</span>
           </div>
         </div>
       </div>
@@ -43,9 +43,9 @@
       </div>
 
       <div class="detail-meta">
-        <span class="meta-item">📍 {{ selectedStory.locality_name }}</span>
-        <span class="meta-item">👤 {{ selectedStory.author_name }}</span>
-        <span class="meta-item">📅 {{ formatDate(selectedStory.created_at) }}</span>
+        <span class="meta-item"><span class="material-symbols-outlined">location_on</span> {{ selectedStory.locality_name }}</span>
+        <span class="meta-item"><span class="material-symbols-outlined">person</span> {{ selectedStory.author_name }}</span>
+        <span class="meta-item"><span class="material-symbols-outlined">calendar_today</span> {{ formatDate(selectedStory.created_at) }}</span>
       </div>
 
       <div class="detail-content">

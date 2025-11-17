@@ -25,7 +25,8 @@ export class StoryService {
         content: story.content,
         locality_id: story.locality_id,
         author_id: user.id,
-        status: 'pending'
+        status: 'pending',
+        story_type: 'text'
       })
       .select()
       .single();
@@ -43,6 +44,46 @@ export class StoryService {
 
       if (mediaError) throw mediaError;
     }
+
+    return storyData;
+  }
+
+  async createAudioStory(title: string, localityId: string, audioFile: File, duration: number): Promise<Story> {
+    const user = this.authService.getCurrentUser();
+    if (!user) throw new Error('User not authenticated');
+
+    // Upload audio file to storage
+    const fileExt = audioFile.name.split('.').pop();
+    const fileName = `${user.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+    const filePath = `${fileName}`;
+
+    const { data: uploadData, error: uploadError } = await this.supabase.storage
+      .from('audio-stories')
+      .upload(filePath, audioFile);
+
+    if (uploadError) throw uploadError;
+
+    const { data: publicUrl } = this.supabase.storage
+      .from('audio-stories')
+      .getPublicUrl(filePath);
+
+    // Insert audio story
+    const { data: storyData, error: storyError } = await this.supabase
+      .from('stories')
+      .insert({
+        title: title,
+        content: null,
+        locality_id: localityId,
+        author_id: user.id,
+        status: 'pending',
+        story_type: 'audio',
+        audio_url: publicUrl.publicUrl,
+        audio_duration: duration
+      })
+      .select()
+      .single();
+
+    if (storyError) throw storyError;
 
     return storyData;
   }
@@ -101,6 +142,28 @@ export class StoryService {
 
     if (error) throw error;
     return data || [];
+  }
+
+  async getStoryById(id: string): Promise<any> {
+    const { data, error } = await this.supabase
+      .from('stories')
+      .select(`
+        *,
+        locality:localities(name),
+        author:profiles!stories_author_id_fkey(full_name),
+        media_files(*)
+      `)
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    
+    // Transform the data to include locality_name and author_name
+    return {
+      ...data,
+      locality_name: data.locality?.name || 'Unknown',
+      author_name: data.author?.full_name || 'Anonymous'
+    };
   }
 
   async getPendingStories(): Promise<Story[]> {

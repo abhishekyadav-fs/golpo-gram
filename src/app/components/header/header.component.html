@@ -1,0 +1,27 @@
+<header class="global-header">
+  <div class="header-brand" (click)="navigateToFeed()">
+    <img src="assets/logo.svg" alt="Golpogram" class="app-logo">
+    <h1 class="app-title"><span class="text-primary">Golpo</span>gram</h1>
+  </div>
+  
+  <div class="header-actions">
+    <button *ngIf="authService.isAuthenticated()" class="btn-icon" (click)="navigateToCreate()" title="Create Story">
+      add
+    </button>
+    <button *ngIf="authService.isModerator()" class="btn-icon" routerLink="/moderation" title="Moderation">
+      settings
+    </button>
+    <button *ngIf="authService.isAuthenticated()" class="btn-icon" routerLink="/my-stories" title="My Stories">
+      edit_note
+    </button>
+    <button *ngIf="authService.isAuthenticated()" class="btn-icon" routerLink="/profile" title="Profile">
+      person
+    </button>
+    <button *ngIf="authService.isAuthenticated()" class="btn-icon" (click)="logout()" title="Logout">
+      logout
+    </button>
+    <button *ngIf="!authService.isAuthenticated()" class="btn-primary-small" routerLink="/login">
+      Sign In
+    </button>
+  </div>
+</header>

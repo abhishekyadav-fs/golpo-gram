@@ -1,11 +1,11 @@
 <div class="my-stories-container">
-  <header class="page-header">
+  <div class="page-actions">
     <h1 class="page-title">My Stories</h1>
-    <div class="header-actions">
-      <button class="btn-secondary" routerLink="/feed">Back to Feed</button>
+    <div class="action-buttons">
       <button class="btn-primary" routerLink="/create-story">Create New Story</button>
+      <button class="btn-icon" routerLink="/feed" title="Home">home</button>
     </div>
-  </header>
+  </div>
 
   <div class="stories-content">
     <div *ngIf="isLoading" class="loading-spinner">
@@ -18,7 +18,7 @@
     </div>
 
     <div *ngIf="!isLoading && stories.length === 0 && !errorMessage" class="empty-state">
-      <p class="empty-icon">📝</p>
+      <p class="empty-icon">edit_note</p>
       <h3>No stories yet</h3>
       <p>You haven't published any stories. Share your first story with the community!</p>
       <button class="btn-primary" routerLink="/create-story">Create Your First Story</button>

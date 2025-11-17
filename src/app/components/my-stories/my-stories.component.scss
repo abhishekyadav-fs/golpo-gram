@@ -4,59 +4,91 @@
   padding-bottom: 2rem;
 }
 
-.page-header {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-  color: white;
-  padding: 2rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.page-actions {
+  background: transparent;
+  color: var(--secondary-color);
+  padding: 1.5rem 2rem 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .page-title {
-  font-size: 2rem;
-  font-weight: 700;
-  margin: 0 0 1rem 0;
+  font-size: 1.5rem;
+  font-weight: var(--weight-semibold);
+  margin: 0;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
 }
 
-.header-actions {
+.action-buttons {
   display: flex;
   gap: 1rem;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.btn-icon {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-secondary);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 300;
+  font-family: 'Material Symbols Outlined';
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.04);
+    color: var(--secondary-color);
+    transform: none;
+  }
 }
 
 .btn-primary, .btn-secondary {
-  padding: 0.75rem 1.5rem;
+  padding: 0.625rem 1.25rem;
   border: none;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: var(--weight-semibold);
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-primary {
-  background: white;
-  color: var(--primary-color);
+  background: var(--primary-color);
+  color: white;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    background: var(--primary-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(233, 75, 60, 0.25);
   }
 }
 
 .btn-secondary {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 2px solid white;
+  background: transparent;
+  color: var(--secondary-color);
+  border: 1px solid var(--border-color);
 
   &:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.05);
+    border-color: var(--secondary-color);
   }
 }
 
 .stories-content {
   max-width: 1200px;
-  margin: 2rem auto;
-  padding: 0 1rem;
+  margin: 0 auto;
+  padding: 0 2rem 2rem 2rem;
 }
 
 .loading-spinner {
@@ -142,7 +174,8 @@
   font-size: 1.5rem;
   color: #333;
   margin: 0 0 0.5rem 0;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
+  letter-spacing: -0.01em;
 }
 
 .story-meta {
@@ -162,7 +195,7 @@
   padding: 0.5rem 1rem;
   border-radius: 20px;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   white-space: nowrap;
 }
 

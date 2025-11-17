@@ -1,0 +1,54 @@
+<div class="story-detail-container">
+  <div *ngIf="isLoading" class="loading-spinner">
+    <div class="spinner"></div>
+    <p>Loading story...</p>
+  </div>
+
+  <div *ngIf="errorMessage" class="error-message">
+    {{ errorMessage }}
+    <button class="btn-secondary" (click)="goBack()">Back to Feed</button>
+  </div>
+
+  <article *ngIf="!isLoading && story" class="story-detail">
+    <button class="btn-back" (click)="goBack()">
+      <span class="material-symbols-outlined">arrow_back</span>
+      Back to Feed
+    </button>
+
+    <header class="story-header">
+      <h1 class="story-title">{{ story.title }}</h1>
+      
+      <div class="story-meta">
+        <span class="meta-item">
+          <span class="material-symbols-outlined">person</span>
+          {{ story.author_name }}
+        </span>
+        <span class="meta-item">
+          <span class="material-symbols-outlined">location_on</span>
+          {{ story.locality_name }}
+        </span>
+        <span class="meta-item">
+          <span class="material-symbols-outlined">calendar_today</span>
+          {{ formatDate(story.created_at) }}
+        </span>
+      </div>
+
+      <div class="story-badges">
+        <span class="badge badge-type">{{ story.type }}</span>
+        <span class="badge badge-status" [class.approved]="story.status === 'approved'">
+          {{ story.status }}
+        </span>
+      </div>
+    </header>
+
+    <div class="story-content">
+      <p class="story-text">{{ story.content }}</p>
+    </div>
+
+    <footer class="story-footer">
+      <div class="story-stats">
+        <span>Views: {{ story.view_count || 0 }}</span>
+      </div>
+    </footer>
+  </article>
+</div>

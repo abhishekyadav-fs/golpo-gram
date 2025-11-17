@@ -1,8 +1,26 @@
 <div class="create-story-container">
   <div class="create-story-card">
-    <h2 class="page-title">Share Your Story</h2>
+    <h2 class="page-title">Share Your Story<span *ngIf="userName">, {{ userName }}</span></h2>
 
-    <form [formGroup]="storyForm" (ngSubmit)="onSubmit()" class="story-form">
+    <!-- Story Type Selection -->
+    <div class="story-type-selection" *ngIf="!storyType">
+      <p class="selection-prompt">How would you like to share your story?</p>
+      <div class="type-options">
+        <button type="button" class="type-option-btn" (click)="selectStoryType('text')">
+          <span class="material-symbols-outlined">edit_note</span>
+          <span class="option-title">Write Story</span>
+          <span class="option-description">Share your story with text and images</span>
+        </button>
+        <button type="button" class="type-option-btn" (click)="selectStoryType('audio')">
+          <span class="material-symbols-outlined">mic</span>
+          <span class="option-title">Audio Story</span>
+          <span class="option-description">Record or upload your voice</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Text Story Form -->
+    <form *ngIf="storyType === 'text'" [formGroup]="storyForm" (ngSubmit)="onSubmit()" class="story-form">
       <div class="form-group">
         <label for="title">Story Title *</label>
         <input
@@ -37,13 +55,30 @@
 
       <div class="form-group">
         <label for="content">Story Content *</label>
-        <textarea
-          id="content"
-          formControlName="content"
-          class="form-control textarea-control"
-          rows="8"
-          placeholder="Tell your story..."
-        ></textarea>
+        <div class="rich-text-toolbar">
+          <button type="button" class="toolbar-btn" (click)="execCommand('bold')" title="Bold">
+            <span class="material-symbols-outlined">format_bold</span>
+          </button>
+          <button type="button" class="toolbar-btn" (click)="execCommand('italic')" title="Italic">
+            <span class="material-symbols-outlined">format_italic</span>
+          </button>
+          <button type="button" class="toolbar-btn" (click)="execCommand('underline')" title="Underline">
+            <span class="material-symbols-outlined">format_underlined</span>
+          </button>
+          <span class="toolbar-divider"></span>
+          <button type="button" class="toolbar-btn" (click)="execCommand('insertUnorderedList')" title="Bullet List">
+            <span class="material-symbols-outlined">format_list_bulleted</span>
+          </button>
+          <button type="button" class="toolbar-btn" (click)="execCommand('insertOrderedList')" title="Numbered List">
+            <span class="material-symbols-outlined">format_list_numbered</span>
+          </button>
+        </div>
+        <div
+          class="rich-text-editor"
+          contenteditable="true"
+          (input)="onEditorInput($event)"
+          [attr.data-placeholder]="'Tell your story...'"
+        ></div>
         <div class="error-message" *ngIf="storyForm.get('content')?.invalid && storyForm.get('content')?.touched">
           <span *ngIf="storyForm.get('content')?.errors?.['required']">Content is required</span>
           <span *ngIf="storyForm.get('content')?.errors?.['minlength']">Content must be at least 20 characters</span>
@@ -89,8 +124,8 @@
       </div>
 
       <div class="form-actions">
-        <button type="button" class="btn-secondary" routerLink="/feed">
-          Cancel
+        <button type="button" class="btn-secondary" (click)="goBack()">
+          Back
         </button>
         <button
           type="submit"
@@ -98,6 +133,128 @@
           [disabled]="storyForm.invalid || isLoading"
         >
           {{ isLoading ? 'Submitting...' : 'Submit Story' }}
+        </button>
+      </div>
+    </form>
+
+    <!-- Audio Story Form -->
+    <form *ngIf="storyType === 'audio'" [formGroup]="audioStoryForm" (ngSubmit)="onSubmit()" class="story-form">
+      <div class="form-group">
+        <label for="audio-title">Story Title *</label>
+        <input
+          id="audio-title"
+          type="text"
+          formControlName="title"
+          class="form-control"
+          placeholder="Enter an engaging title"
+        />
+        <div class="error-message" *ngIf="audioStoryForm.get('title')?.invalid && audioStoryForm.get('title')?.touched">
+          <span *ngIf="audioStoryForm.get('title')?.errors?.['required']">Title is required</span>
+          <span *ngIf="audioStoryForm.get('title')?.errors?.['minlength']">Title must be at least 5 characters</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="audio-locality_id">Locality *</label>
+        <select
+          id="audio-locality_id"
+          formControlName="locality_id"
+          class="form-control"
+        >
+          <option value="">Select a locality</option>
+          <option *ngFor="let locality of localities" [value]="locality.id">
+            {{ locality.name }}
+          </option>
+        </select>
+        <div class="error-message" *ngIf="audioStoryForm.get('locality_id')?.invalid && audioStoryForm.get('locality_id')?.touched">
+          Locality is required
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Audio Story *</label>
+        
+        <!-- Audio Options Selection -->
+        <div class="audio-options" *ngIf="!audioFile && !isRecording && !recordedBlob">
+          <button type="button" class="audio-option-btn" (click)="showUploadAudio()">
+            <span class="material-symbols-outlined">upload_file</span>
+            Upload Audio File
+          </button>
+          <button type="button" class="audio-option-btn" (click)="startRecording()">
+            <span class="material-symbols-outlined">mic</span>
+            Record Audio
+          </button>
+        </div>
+
+        <!-- Audio Upload -->
+        <div class="audio-upload-area" *ngIf="showUpload && !audioFile">
+          <input
+            type="file"
+            id="audioFileInput"
+            (change)="onAudioFileSelect($event)"
+            accept="audio/mp3,audio/wav,audio/ogg,audio/m4a,audio/aac,audio/mpeg"
+            hidden
+          />
+          <label for="audioFileInput" class="audio-upload-label">
+            <span class="material-symbols-outlined">cloud_upload</span>
+            <span>Choose Audio File</span>
+            <span class="supported-formats">Supported: MP3, WAV, OGG, M4A, AAC</span>
+          </label>
+        </div>
+
+        <!-- Audio Recording Controls -->
+        <div class="audio-recording" *ngIf="isRecording">
+          <div class="recording-indicator">
+            <span class="recording-dot"></span>
+            <span class="recording-text">Recording... {{ recordingDuration }}</span>
+          </div>
+          <div class="recording-visualizer">
+            <div class="visualizer-bar" *ngFor="let bar of visualizerBars" [style.height.%]="bar"></div>
+          </div>
+          <button type="button" class="btn-stop-recording" (click)="stopRecording()">
+            <span class="material-symbols-outlined">stop_circle</span>
+            Stop Recording
+          </button>
+        </div>
+
+        <!-- Audio Preview -->
+        <div class="audio-preview" *ngIf="audioFile || recordedBlob">
+          <div class="audio-player">
+            <audio #audioPlayer [src]="audioPreviewUrl" controls></audio>
+          </div>
+          <div class="audio-info">
+            <span class="audio-name">{{ audioFileName }}</span>
+            <span class="audio-duration" *ngIf="audioDuration">{{ formatDuration(audioDuration) }}</span>
+          </div>
+          <button type="button" class="btn-remove-audio" (click)="removeAudio()">
+            <span class="material-symbols-outlined">delete</span>
+            Remove
+          </button>
+        </div>
+
+        <div class="error-message" *ngIf="audioStoryForm.get('audio_url')?.invalid && audioStoryForm.get('audio_url')?.touched">
+          Audio file is required
+        </div>
+      </div>
+
+      <div class="error-message" *ngIf="errorMessage">
+        {{ errorMessage }}
+      </div>
+
+      <div class="success-message" *ngIf="successMessage">
+        {{ successMessage }}
+      </div>
+
+      <div class="form-actions">
+        <button type="button" class="btn-secondary" (click)="goBack()">
+          Back
+        </button>
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="audioStoryForm.invalid || isLoading || (!audioFile && !recordedBlob)"
+        >
+          {{ isLoading ? 'Submitting...' : 'Submit Audio Story' }}
         </button>
       </div>
     </form>

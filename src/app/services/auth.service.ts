@@ -64,6 +64,7 @@ export class AuthService {
   // Prevent concurrent session calls
   private loadingUserPromise: Promise<void> | null = null;
   private isInitialized = false;
+  private initPromise: Promise<void> | null = null;
 
   constructor() {
     // Singleton pattern - ensure only one instance
@@ -96,14 +97,22 @@ export class AuthService {
     return this.supabase;
   }
 
-  private async initialize() {
+  async initialize() {
+    if (this.initPromise) {
+      return this.initPromise;
+    }
+
     if (this.isInitialized) return;
     
-    this.isInitialized = true;
-    this.initAuthListener();
-    
-    // Initial session check - serialize this call
-    await this.loadUser();
+    this.initPromise = (async () => {
+      this.isInitialized = true;
+      this.initAuthListener();
+      
+      // Initial session check - serialize this call
+      await this.loadUser();
+    })();
+
+    return this.initPromise;
   }
 
   private async initAuthListener() {
@@ -155,6 +164,7 @@ export class AuthService {
             id: profile.id,
             email: user.email || '',
             full_name: profile.full_name,
+            profile_image_url: profile.profile_image_url,
             role_id: profile.role_id,
             role_name: profile.role?.name,
             created_at: new Date(profile.created_at)
@@ -248,8 +258,70 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
+  async reloadUser(): Promise<void> {
+    await this.loadUser();
+  }
+
+  async updateProfile(updates: { email?: string; full_name?: string; profile_image?: File | null }): Promise<void> {
+    const user = this.getCurrentUser();
+    if (!user) throw new Error('No user logged in');
+
+    try {
+      // Update email in Supabase Auth if changed
+      if (updates.email && updates.email !== user.email) {
+        const { error: emailError } = await this.supabase.auth.updateUser({
+          email: updates.email
+        });
+        if (emailError) throw emailError;
+      }
+
+      // Upload profile image if provided
+      let profileImageUrl = user.profile_image_url;
+      if (updates.profile_image) {
+        const fileName = `${user.id}_${Date.now()}.${updates.profile_image.name.split('.').pop()}`;
+        const { data: uploadData, error: uploadError } = await this.supabase.storage
+          .from('profile-images')
+          .upload(fileName, updates.profile_image, {
+            upsert: true
+          });
+
+        if (uploadError) throw uploadError;
+
+        // Get public URL
+        const { data: { publicUrl } } = this.supabase.storage
+          .from('profile-images')
+          .getPublicUrl(fileName);
+
+        profileImageUrl = publicUrl;
+      }
+
+      // Update profile in database
+      const { error: profileError } = await this.supabase
+        .from('profiles')
+        .update({
+          email: updates.email || user.email,
+          full_name: updates.full_name || user.full_name,
+          profile_image_url: profileImageUrl
+        })
+        .eq('id', user.id);
+
+      if (profileError) throw profileError;
+
+      // Reload user data
+      await this.loadUser();
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      throw error;
+    }
+  }
+
   isAuthenticated(): boolean {
     return this.currentUserSubject.value !== null;
+  }
+
+  async waitForAuthReady(): Promise<boolean> {
+    await this.initialize();
+    return this.isAuthenticated();
   }
 
   isModerator(): boolean {

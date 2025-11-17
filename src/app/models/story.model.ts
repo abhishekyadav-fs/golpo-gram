@@ -2,6 +2,9 @@ export interface Story {
   id?: string;
   title: string;
   content: string;
+  story_type?: 'text' | 'audio';
+  audio_url?: string;
+  audio_duration?: number;
   locality_id: string;
   locality_name?: string;
   author_id: string;

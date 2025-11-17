@@ -3,35 +3,59 @@
   background: #f5f7fa;
 }
 
-.mod-header {
-  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-  color: white;
+.mod-actions {
+  background: var(--background);
+  color: var(--secondary-color);
   padding: 1.5rem 2rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .mod-title {
   font-size: 1.75rem;
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   margin: 0;
 }
 
-.btn-secondary {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 2px solid white;
-  padding: 0.5rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
+.btn-icon {
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--secondary-color);
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  font-size: 20px;
   cursor: pointer;
-  transition: all 0.3s;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 300;
+  font-family: 'Material Symbols Outlined';
 
   &:hover {
-    background: white;
-    color: var(--primary-color);
+    background: rgba(0, 0, 0, 0.05);
+    border-color: var(--secondary-color);
+    transform: none;
+  }
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--secondary-color);
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 1.5rem;
+  border-radius: 4px;
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: var(--secondary-color);
   }
 }
 
@@ -126,7 +150,7 @@
   font-size: 1rem;
   color: #333;
   margin: 0 0 0.5rem 0;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
 }
 
 .story-item-meta {
@@ -174,7 +198,7 @@
     font-size: 1.75rem;
     color: #333;
     margin: 0;
-    font-weight: 600;
+    font-weight: var(--weight-semibold);
   }
 }
 
@@ -315,7 +339,7 @@
   border: none;
   border-radius: 8px;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   cursor: pointer;
   transition: all 0.2s;
 
