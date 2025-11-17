@@ -46,3 +46,27 @@ html, body {
   height: 100%;
 }
 
+.app-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+router-outlet + * {
+  flex: 1;
+}
+
+.global-footer {
+  background: white;
+  padding: 2rem;
+  text-align: center;
+  border-top: 1px solid rgba(75, 162, 159, 0.15);
+  margin-top: auto;
+
+  p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 400;
+  }
+}

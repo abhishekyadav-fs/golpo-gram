@@ -1,7 +1,12 @@
 <div class="feed-container">
   <!-- Header -->
   <header class="feed-header">
-    <h1 class="app-title">Golpogram</h1>
+    <div class="header-brand">
+      <img src="../../../assets/logo.svg" alt="Golpogram Logo" class="app-logo">
+      <h1 class="app-title">
+        Golpogram
+      </h1>
+    </div>
     <div class="header-actions">
       <button *ngIf="authService.isAuthenticated()" class="btn-icon" (click)="navigateToCreate()" title="Create Story">
         ➕
@@ -47,7 +52,11 @@
       {{ errorMessage }}
     </div>
 
-    <div *ngIf="!isLoading && stories.length === 0 && !errorMessage" class="empty-state">
+    <div *ngIf="noStoriesMessage && !errorMessage" class="info-message">
+      {{ noStoriesMessage }}
+    </div>
+
+    <div *ngIf="!isLoading && stories.length === 0 && !errorMessage && !noStoriesMessage" class="empty-state">
       <p class="empty-icon">📰</p>
       <h3>No stories yet</h3>
       <p>Be the first to share a story from this locality!</p>

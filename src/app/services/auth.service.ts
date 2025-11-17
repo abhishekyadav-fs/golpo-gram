@@ -4,30 +4,112 @@ import { environment } from '../../environments/environment';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { User } from '../models/user.model';
 
+// Clear all Supabase locks and old data IMMEDIATELY when module loads
+// This runs before any Angular initialization
+try {
+  const keysToRemove: string[] = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key && (key.includes('sb-') || key.includes('supabase') || key.includes('lock:'))) {
+      keysToRemove.push(key);
+    }
+  }
+  keysToRemove.forEach(key => {
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {
+      console.warn('Could not remove key:', key, e);
+    }
+  });
+  console.log('Cleared Supabase locks and old data');
+} catch (e) {
+  console.warn('Could not clear old Supabase data:', e);
+}
+
+// Custom storage adapter to avoid lock issues
+const customStorageAdapter = {
+  getItem: (key: string) => {
+    try {
+      return localStorage.getItem(key);
+    } catch (e) {
+      console.warn('Error reading from localStorage:', e);
+      return null;
+    }
+  },
+  setItem: (key: string, value: string) => {
+    try {
+      localStorage.setItem(key, value);
+    } catch (e) {
+      console.warn('Error writing to localStorage:', e);
+    }
+  },
+  removeItem: (key: string) => {
+    try {
+      localStorage.removeItem(key);
+    } catch (e) {
+      console.warn('Error removing from localStorage:', e);
+    }
+  }
+};
+
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private supabase: SupabaseClient;
+  private static instance: AuthService;
+  private supabase!: SupabaseClient;
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$: Observable<User | null> = this.currentUserSubject.asObservable();
+  
+  // Prevent concurrent session calls
+  private loadingUserPromise: Promise<void> | null = null;
+  private isInitialized = false;
 
   constructor() {
+    // Singleton pattern - ensure only one instance
+    if (AuthService.instance) {
+      return AuthService.instance;
+    }
+    
     this.supabase = createClient(environment.supabase.url, environment.supabase.anonKey, {
       auth: {
         persistSession: true,
         autoRefreshToken: true,
         detectSessionInUrl: true,
-        flowType: 'pkce'
+        flowType: 'pkce',
+        storage: customStorageAdapter,
+        storageKey: 'golpogram-auth',
+        // Disable lock to prevent NavigatorLockAcquireTimeoutError
+        lock: async (name, acquireTimeout, fn) => {
+          // Simple implementation without actual locking
+          return await fn();
+        }
       }
     });
+    
+    AuthService.instance = this;
+    this.initialize();
+  }
+
+  // Expose the Supabase client to other services to prevent multiple instances
+  getSupabaseClient(): SupabaseClient {
+    return this.supabase;
+  }
+
+  private async initialize() {
+    if (this.isInitialized) return;
+    
+    this.isInitialized = true;
     this.initAuthListener();
-    this.loadUser();
+    
+    // Initial session check - serialize this call
+    await this.loadUser();
   }
 
   private async initAuthListener() {
     this.supabase.auth.onAuthStateChange((event: AuthChangeEvent, session: Session | null) => {
       if (session?.user) {
+        // Serialize loadUser calls
         this.loadUser();
       } else {
         this.currentUserSubject.next(null);
@@ -35,27 +117,80 @@ export class AuthService {
     });
   }
 
-  private async loadUser() {
-    const { data: { user } } = await this.supabase.auth.getUser();
-    if (user) {
-      const { data: profile } = await this.supabase
-        .from('profiles')
-        .select(`
-          *,
-          role:roles(id, name, description)
-        `)
-        .eq('id', user.id)
-        .single();
+  private async loadUser(): Promise<void> {
+    // If already loading, return the existing promise to prevent concurrent calls
+    if (this.loadingUserPromise) {
+      return this.loadingUserPromise;
+    }
 
-      if (profile) {
-        this.currentUserSubject.next({
-          id: profile.id,
-          email: user.email || '',
-          full_name: profile.full_name,
-          role_id: profile.role_id,
-          role_name: profile.role?.name,
-          created_at: new Date(profile.created_at)
-        });
+    this.loadingUserPromise = this.performLoadUser();
+    
+    try {
+      await this.loadingUserPromise;
+    } finally {
+      this.loadingUserPromise = null;
+    }
+  }
+
+  private async performLoadUser(): Promise<void> {
+    try {
+      const { data: { user } } = await this.supabase.auth.getUser();
+      if (user) {
+        const { data: profile, error } = await this.supabase
+          .from('profiles')
+          .select(`
+            *,
+            role:roles(id, name, description)
+          `)
+          .eq('id', user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error loading user profile:', error);
+          return;
+        }
+
+        if (profile) {
+          this.currentUserSubject.next({
+            id: profile.id,
+            email: user.email || '',
+            full_name: profile.full_name,
+            role_id: profile.role_id,
+            role_name: profile.role?.name,
+            created_at: new Date(profile.created_at)
+          });
+        } else {
+          // Profile doesn't exist, create it
+          console.log('Profile not found, creating one...');
+          await this.createProfile(user);
+        }
+      }
+    } catch (error) {
+      console.error('Error in performLoadUser:', error);
+    }
+  }
+
+  private async createProfile(user: any) {
+    // Get default 'user' role id
+    const { data: userRole } = await this.supabase
+      .from('roles')
+      .select('id')
+      .eq('name', 'user')
+      .maybeSingle();
+
+    if (userRole) {
+      const { error } = await this.supabase.from('profiles').insert({
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
+        role_id: userRole.id
+      });
+
+      if (!error) {
+        // Reload user after creating profile
+        await this.loadUser();
+      } else {
+        console.error('Error creating profile:', error);
       }
     }
   }
@@ -78,7 +213,7 @@ export class AuthService {
       .from('roles')
       .select('id')
       .eq('name', 'user')
-      .single();
+      .maybeSingle();
 
     // Create profile
     if (data.user && userRole) {

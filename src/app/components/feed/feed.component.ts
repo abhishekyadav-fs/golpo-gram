@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { StoryService } from '../../services/story.service';
 import { LocalityService } from '../../services/locality.service';
 import { AuthService } from '../../services/auth.service';
@@ -10,7 +10,7 @@ import { Story, Locality } from '../../models/story.model';
 @Component({
   selector: 'app-feed',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './feed.component.html',
   styleUrls: ['./feed.component.scss']
 })
@@ -20,6 +20,7 @@ export class FeedComponent implements OnInit {
   selectedLocalityId: string = '';
   isLoading = false;
   errorMessage = '';
+  noStoriesMessage = '';
 
   constructor(
     private storyService: StoryService,
@@ -49,11 +50,19 @@ export class FeedComponent implements OnInit {
 
     this.isLoading = true;
     this.errorMessage = '';
+    this.noStoriesMessage = '';
 
     try {
       this.stories = await this.storyService.getStoriesByLocality(this.selectedLocalityId);
+      
+      // Check if no stories were returned
+      if (this.stories.length === 0) {
+        const selectedLocality = this.localities.find(l => l.id === this.selectedLocalityId);
+        this.noStoriesMessage = `No stories available for ${selectedLocality?.name || 'this locality'} yet. Be the first to share!`;
+      }
     } catch (error: any) {
-      this.errorMessage = 'Failed to load stories';
+      console.error('Error loading stories:', error);
+      this.errorMessage = 'Failed to load stories. Please try again later.';
     } finally {
       this.isLoading = false;
     }

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { environment } from '../../environments/environment';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { Role } from '../models/user.model';
+import { AuthService } from './auth.service';
 
 @Injectable({
   providedIn: 'root'
@@ -9,8 +9,8 @@ import { Role } from '../models/user.model';
 export class RoleService {
   private supabase: SupabaseClient;
 
-  constructor() {
-    this.supabase = createClient(environment.supabase.url, environment.supabase.anonKey);
+  constructor(private authService: AuthService) {
+    this.supabase = this.authService.getSupabaseClient();
   }
 
   async getRoles(): Promise<Role[]> {

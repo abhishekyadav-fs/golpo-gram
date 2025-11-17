@@ -84,18 +84,38 @@ ALTER TABLE media_files ENABLE ROW LEVEL SECURITY;
 ### Step 3: Create RLS Policies
 
 ```sql
--- Roles policies
+-- Roles policies (no recursion - simple public read access)
 CREATE POLICY "Roles are viewable by everyone" 
   ON roles FOR SELECT 
   USING (true);
 
-CREATE POLICY "Only admins can manage roles" 
-  ON roles FOR ALL 
+CREATE POLICY "Only admins can insert roles" 
+  ON roles FOR INSERT 
+  WITH CHECK (
+    EXISTS (
+      SELECT 1 FROM profiles p
+      WHERE p.id = auth.uid() 
+      AND p.role_id = (SELECT id FROM roles WHERE name = 'admin')
+    )
+  );
+
+CREATE POLICY "Only admins can update roles" 
+  ON roles FOR UPDATE 
   USING (
     EXISTS (
       SELECT 1 FROM profiles p
-      JOIN roles r ON p.role_id = r.id
-      WHERE p.id = auth.uid() AND r.name = 'admin'
+      WHERE p.id = auth.uid() 
+      AND p.role_id = (SELECT id FROM roles WHERE name = 'admin')
+    )
+  );
+
+CREATE POLICY "Only admins can delete roles" 
+  ON roles FOR DELETE 
+  USING (
+    EXISTS (
+      SELECT 1 FROM profiles p
+      WHERE p.id = auth.uid() 
+      AND p.role_id = (SELECT id FROM roles WHERE name = 'admin')
     )
   );
 
@@ -103,6 +123,10 @@ CREATE POLICY "Only admins can manage roles"
 CREATE POLICY "Public profiles are viewable by everyone" 
   ON profiles FOR SELECT 
   USING (true);
+
+CREATE POLICY "Users can insert own profile on signup" 
+  ON profiles FOR INSERT 
+  WITH CHECK (auth.uid() = id);
 
 CREATE POLICY "Users can update own profile" 
   ON profiles FOR UPDATE 

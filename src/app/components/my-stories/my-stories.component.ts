@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { StoryService } from '../../services/story.service';
 import { AuthService } from '../../services/auth.service';
 import { Story } from '../../models/story.model';
@@ -8,7 +8,7 @@ import { Story } from '../../models/story.model';
 @Component({
   selector: 'app-my-stories',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterLink],
   templateUrl: './my-stories.component.html',
   styleUrls: ['./my-stories.component.scss']
 })

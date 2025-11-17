@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { environment } from '../../environments/environment';
+import { SupabaseClient } from '@supabase/supabase-js';
 import { Story, MediaFile } from '../models/story.model';
 import { AuthService } from './auth.service';
 
@@ -11,7 +10,7 @@ export class StoryService {
   private supabase: SupabaseClient;
 
   constructor(private authService: AuthService) {
-    this.supabase = createClient(environment.supabase.url, environment.supabase.anonKey);
+    this.supabase = this.authService.getSupabaseClient();
   }
 
   async createStory(story: Story, files: File[]): Promise<Story> {
@@ -93,7 +92,7 @@ export class StoryService {
       .select(`
         *,
         locality:localities(name),
-        author:profiles(full_name),
+        author:profiles!stories_author_id_fkey(full_name),
         media_files(*)
       `)
       .eq('locality_id', localityId)
@@ -110,7 +109,7 @@ export class StoryService {
       .select(`
         *,
         locality:localities(name),
-        author:profiles(full_name),
+        author:profiles!stories_author_id_fkey(full_name),
         media_files(*)
       `)
       .eq('status', 'pending')

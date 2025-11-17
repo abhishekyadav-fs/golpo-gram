@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { StoryService } from '../../services/story.service';
 import { LocalityService } from '../../services/locality.service';
 import { AuthService } from '../../services/auth.service';
@@ -10,7 +10,7 @@ import { Locality } from '../../models/story.model';
 @Component({
   selector: 'app-create-story',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './create-story.component.html',
   styleUrls: ['./create-story.component.scss']
 })

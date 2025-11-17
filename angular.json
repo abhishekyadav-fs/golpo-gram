@@ -29,7 +29,8 @@
               {
                 "glob": "**/*",
                 "input": "public"
-              }
+              },
+              "src/assets/logo.svg"
             ],
             "styles": [
               "src/styles.scss"
