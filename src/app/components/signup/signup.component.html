@@ -63,6 +63,22 @@
         </div>
       </div>
 
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            formControlName="acceptTerms"
+            class="checkbox-input"
+          />
+          <span class="checkbox-text">
+            I agree to the <a href="/terms" target="_blank" class="link">Terms and Conditions</a> and <a href="/privacy" target="_blank" class="link">Privacy Policy</a>
+          </span>
+        </label>
+        <div class="error-message" *ngIf="signupForm.get('acceptTerms')?.invalid && signupForm.get('acceptTerms')?.touched">
+          You must accept the terms and conditions
+        </div>
+      </div>
+
       <div class="error-message" *ngIf="errorMessage">
         {{ errorMessage }}
       </div>

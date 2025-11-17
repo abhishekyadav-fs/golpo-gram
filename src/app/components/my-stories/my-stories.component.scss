@@ -47,8 +47,9 @@
   font-family: 'Material Symbols Outlined';
 
   &:hover {
-    background: rgba(0, 0, 0, 0.04);
-    color: var(--secondary-color);
+    background: rgba(233, 75, 60, 0.05);
+    color: var(--primary-color);
+    border-color: var(--primary-color);
     transform: none;
   }
 }
@@ -69,7 +70,6 @@
 
   &:hover {
     background: var(--primary-dark);
-    transform: translateY(-1px);
     box-shadow: 0 2px 8px rgba(233, 75, 60, 0.25);
   }
 }

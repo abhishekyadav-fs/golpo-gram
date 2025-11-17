@@ -1,6 +1,6 @@
 <div class="moderation-container">
-  <div class="mod-actions">
-    <h1 class="mod-title">Story Moderation</h1>
+  <div class="page-actions">
+    <h1 class="page-title">Story Moderation</h1>
     <button class="btn-icon" routerLink="/feed" title="Home">home</button>
   </div>
 
@@ -14,7 +14,6 @@
       </div>
 
       <div *ngIf="!isLoading && pendingStories.length === 0" class="empty-state">
-        <p class="empty-icon">✅</p>
         <h3>No pending stories</h3>
         <p>All caught up! Great job.</p>
       </div>
@@ -69,7 +68,7 @@
         <textarea
           [(ngModel)]="moderationNotes"
           class="notes-textarea"
-          placeholder="Add notes about your decision (optional)"
+          placeholder="Add notes about your decision (required for rejection)"
           rows="3"
         ></textarea>
 
@@ -83,14 +82,14 @@
 
         <div class="moderation-actions">
           <button
-            class="btn-reject"
+            class="btn-secondary"
             (click)="moderateStory('rejected')"
             [disabled]="isLoading"
           >
             {{ isLoading ? 'Processing...' : 'Reject' }}
           </button>
           <button
-            class="btn-approve"
+            class="btn-primary"
             (click)="moderateStory('approved')"
             [disabled]="isLoading"
           >
@@ -101,7 +100,6 @@
     </div>
 
     <div class="story-detail-placeholder" *ngIf="!selectedStory && pendingStories.length > 0">
-      <p class="placeholder-icon">👈</p>
       <h3>Select a story to review</h3>
       <p>Choose a pending story from the list to review its content and moderate.</p>
     </div>

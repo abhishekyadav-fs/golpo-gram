@@ -58,6 +58,12 @@ export class ModerationComponent implements OnInit {
   async moderateStory(status: 'approved' | 'rejected') {
     if (!this.selectedStory) return;
 
+    // Validate that notes are provided for rejection
+    if (status === 'rejected' && !this.moderationNotes.trim()) {
+      this.errorMessage = 'Please provide a reason for rejecting the story';
+      return;
+    }
+
     this.isLoading = true;
     this.errorMessage = '';
     this.successMessage = '';
