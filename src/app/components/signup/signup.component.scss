@@ -1,0 +1,10 @@
+@use '../login/login.component.scss' as *;
+
+.success-message {
+  color: #27ae60;
+  font-size: 0.85rem;
+  padding: 0.75rem;
+  background: #d5f4e6;
+  border-radius: 6px;
+  text-align: center;
+}

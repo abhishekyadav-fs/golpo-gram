@@ -1,0 +1,94 @@
+<div class="feed-container">
+  <!-- Header -->
+  <header class="feed-header">
+    <h1 class="app-title">Golpogram</h1>
+    <div class="header-actions">
+      <button *ngIf="authService.isAuthenticated()" class="btn-icon" (click)="navigateToCreate()" title="Create Story">
+        ➕
+      </button>
+      <button *ngIf="authService.isModerator()" class="btn-icon" routerLink="/moderation" title="Moderation">
+        ⚙️
+      </button>
+      <button *ngIf="authService.isAuthenticated()" class="btn-icon" routerLink="/my-stories" title="My Stories">
+        📝
+      </button>
+      <button *ngIf="authService.isAuthenticated()" class="btn-icon" (click)="logout()" title="Logout">
+        🚪
+      </button>
+      <button *ngIf="!authService.isAuthenticated()" class="btn-primary-small" routerLink="/login">
+        Sign In
+      </button>
+    </div>
+  </header>
+
+  <!-- Locality Filter -->
+  <div class="filter-section">
+    <label for="locality-filter">Filter by Locality:</label>
+    <select
+      id="locality-filter"
+      [(ngModel)]="selectedLocalityId"
+      (change)="onLocalityChange()"
+      class="locality-select"
+    >
+      <option *ngFor="let locality of localities" [value]="locality.id">
+        {{ locality.name }}
+      </option>
+    </select>
+  </div>
+
+  <!-- Stories Feed -->
+  <div class="stories-container">
+    <div *ngIf="isLoading" class="loading-spinner">
+      <div class="spinner"></div>
+      <p>Loading stories...</p>
+    </div>
+
+    <div *ngIf="errorMessage" class="error-message">
+      {{ errorMessage }}
+    </div>
+
+    <div *ngIf="!isLoading && stories.length === 0 && !errorMessage" class="empty-state">
+      <p class="empty-icon">📰</p>
+      <h3>No stories yet</h3>
+      <p>Be the first to share a story from this locality!</p>
+      <button class="btn-primary" (click)="navigateToCreate()">
+        Create Story
+      </button>
+    </div>
+
+    <div class="story-grid">
+      <article class="story-card" *ngFor="let story of stories">
+        <div class="story-header">
+          <div>
+            <h2 class="story-title">{{ story.title }}</h2>
+            <div class="story-meta">
+              <span class="author">By {{ story.author_name }}</span>
+              <span class="separator">•</span>
+              <span class="date">{{ formatDate(story.created_at) }}</span>
+            </div>
+          </div>
+          <span class="locality-badge">📍 {{ story.locality_name }}</span>
+        </div>
+
+        <div class="story-content">
+          <p>{{ story.content }}</p>
+        </div>
+
+        <div class="story-media" *ngIf="story.media_files && story.media_files.length > 0">
+          <div class="media-grid">
+            <div *ngFor="let media of story.media_files" class="media-item">
+              <img *ngIf="media.file_type === 'image'" [src]="media.file_url" [alt]="media.file_name" />
+              <video *ngIf="media.file_type === 'video'" [src]="media.file_url" controls></video>
+              <audio *ngIf="media.file_type === 'audio'" [src]="media.file_url" controls></audio>
+            </div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </div>
+
+  <!-- Floating Action Button (Mobile) -->
+  <button *ngIf="authService.isAuthenticated()" class="fab" (click)="navigateToCreate()" title="Create Story">
+    ➕
+  </button>
+</div>
