@@ -112,6 +112,21 @@ label {
   }
 }
 
+.forgot-password-link {
+  margin-top: 1rem;
+  text-align: center;
+  font-size: 0.9rem;
+
+  a {
+    color: var(--primary-color);
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
 @media (max-width: 480px) {
   .auth-card {
     padding: 1.5rem;

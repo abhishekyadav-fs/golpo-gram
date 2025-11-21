@@ -328,4 +328,20 @@ export class AuthService {
     const user = this.currentUserSubject.value;
     return user?.role_name === 'moderator' || user?.role_name === 'admin';
   }
+
+  async resetPassword(email: string): Promise<void> {
+    const { error } = await this.supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`
+    });
+    
+    if (error) throw error;
+  }
+
+  async updatePassword(newPassword: string): Promise<void> {
+    const { error } = await this.supabase.auth.updateUser({
+      password: newPassword
+    });
+    
+    if (error) throw error;
+  }
 }

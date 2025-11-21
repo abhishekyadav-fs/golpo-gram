@@ -9,12 +9,16 @@ import { ProfileComponent } from './components/profile/profile.component';
 import { StoryDetailComponent } from './components/story-detail/story-detail.component';
 import { TermsComponent } from './components/terms/terms.component';
 import { PrivacyComponent } from './components/privacy/privacy.component';
+import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
+import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
 import { authGuard, noAuthGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/feed', pathMatch: 'full' },
   { path: 'login', component: LoginComponent, canActivate: [noAuthGuard] },
   { path: 'signup', component: SignupComponent, canActivate: [noAuthGuard] },
+  { path: 'forgot-password', component: ForgotPasswordComponent, canActivate: [noAuthGuard] },
+  { path: 'reset-password', component: ResetPasswordComponent },
   { path: 'terms', component: TermsComponent },
   { path: 'privacy', component: PrivacyComponent },
   { path: 'feed', component: FeedComponent },

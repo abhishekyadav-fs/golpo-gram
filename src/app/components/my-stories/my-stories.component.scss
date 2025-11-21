@@ -257,12 +257,33 @@
 }
 
 @media (max-width: 768px) {
-  .page-header {
-    padding: 1.5rem;
+  .page-actions {
+    padding: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
   }
 
   .page-title {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
+  }
+
+  .action-buttons {
+    width: 100%;
+    justify-content: space-between;
+    gap: 0.75rem;
+    flex-wrap: nowrap;
+  }
+
+  .btn-primary {
+    flex: 1;
+    white-space: nowrap;
+    font-size: 0.85rem;
+    padding: 0.625rem 1rem;
+  }
+
+  .stories-content {
+    padding: 0 1rem 2rem 1rem;
   }
 
   .story-header {
