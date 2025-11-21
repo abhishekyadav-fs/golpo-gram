@@ -1,0 +1,148 @@
+<div class="moderators-container">
+  <div class="moderators-header">
+    <h2>Moderator Management</h2>
+    <button class="btn-add" (click)="openAddModal()">
+      <span class="material-symbols-outlined">add</span>
+      <span>Add Moderator</span>
+    </button>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    <p>Loading moderators...</p>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <div *ngIf="!isLoading && moderators.length === 0" class="empty-state">
+    <span class="material-symbols-outlined">verified_user</span>
+    <p>No moderators found</p>
+    <button class="btn-primary" (click)="openAddModal()">Add First Moderator</button>
+  </div>
+
+  <div *ngIf="!isLoading && moderators.length > 0" class="moderators-grid">
+    <div class="moderator-card" *ngFor="let mod of moderators">
+      <div class="card-header">
+        <img [src]="getProfileImage(mod)" [alt]="mod.full_name" class="moderator-avatar">
+        <div class="moderator-info">
+          <h3 class="moderator-name">{{ mod.full_name }}</h3>
+          <p class="moderator-email">{{ mod.email }}</p>
+          <p class="moderator-date">Assigned {{ formatDate(mod.assigned_date) }}</p>
+        </div>
+      </div>
+
+      <div class="card-stats">
+        <div class="stat">
+          <span class="stat-value">{{ mod.stories_reviewed }}</span>
+          <span class="stat-label">Reviewed</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ mod.stories_approved }}</span>
+          <span class="stat-label">Approved</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ mod.stories_rejected }}</span>
+          <span class="stat-label">Rejected</span>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <span class="last-activity">Last active: {{ formatDate(mod.last_activity || '') }}</span>
+        <div class="card-actions">
+          <button 
+            class="btn-action btn-view" 
+            (click)="viewActivity(mod)"
+            title="View Activity">
+            <span class="material-symbols-outlined">history</span>
+          </button>
+          <button 
+            class="btn-action btn-remove" 
+            (click)="removeModerator(mod)"
+            title="Remove Moderator">
+            <span class="material-symbols-outlined">person_remove</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activity Modal -->
+  <div class="modal-overlay" *ngIf="showActivity" (click)="closeActivity()">
+    <div class="modal-content large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Activity: {{ selectedModerator?.full_name }}</h3>
+        <button class="btn-close" (click)="closeActivity()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="moderatorActivity.length === 0" class="empty-state-small">
+          <p>No activity recorded</p>
+        </div>
+        <div *ngIf="moderatorActivity.length > 0" class="activity-list">
+          <div class="activity-item" *ngFor="let activity of moderatorActivity">
+            <div class="activity-icon" [class]="activity.action">
+              <span class="material-symbols-outlined">
+                {{ activity.action === 'approved' ? 'check_circle' : 'cancel' }}
+              </span>
+            </div>
+            <div class="activity-content">
+              <p class="activity-action">
+                <strong>{{ activity.action === 'approved' ? 'Approved' : 'Rejected' }}</strong>
+                "{{ activity.story_title }}"
+              </p>
+              <p class="activity-meta">
+                By {{ activity.author_name }} • {{ formatDateTime(activity.action_date) }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Moderator Modal -->
+  <div class="modal-overlay" *ngIf="showAddModal" (click)="closeAddModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Add Moderator</h3>
+        <button class="btn-close" (click)="closeAddModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="search-box">
+          <span class="material-symbols-outlined">search</span>
+          <input 
+            type="text" 
+            [(ngModel)]="searchTerm" 
+            (input)="searchUsers()"
+            placeholder="Search users by name or email..."
+            class="search-input">
+        </div>
+
+        <div *ngIf="searchingUsers" class="loading-small">
+          <p>Searching...</p>
+        </div>
+
+        <div *ngIf="!searchingUsers && searchResults.length === 0 && searchTerm" class="empty-state-small">
+          <p>No users found</p>
+        </div>
+
+        <div *ngIf="searchResults.length > 0" class="user-results">
+          <div class="user-result" *ngFor="let user of searchResults">
+            <div class="user-info">
+              <p class="user-name">{{ user.full_name }}</p>
+              <p class="user-email">{{ user.email }}</p>
+            </div>
+            <button class="btn-add-small" (click)="addModerator(user)">
+              <span class="material-symbols-outlined">add</span>
+              Add
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

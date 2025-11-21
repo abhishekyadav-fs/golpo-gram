@@ -13,6 +13,7 @@
   align-items: center;
   max-width: 1200px;
   margin: 0 auto;
+  gap: 1rem;
 }
 
 .page-title {
@@ -21,36 +22,65 @@
   margin: 0;
   color: var(--text-primary);
   letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
 .action-buttons {
   display: flex;
-  gap: 1rem;
-  flex-wrap: wrap;
+  gap: 0.75rem;
   align-items: center;
+  flex-shrink: 0;
+}
+
+.btn-create {
+  background: white;
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+  padding: 0.625rem 1.25rem;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 300;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+
+  .material-symbols-outlined {
+    font-size: 20px;
+    font-weight: 400;
+  }
+
+  &:hover {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: 0 2px 8px rgba(233, 75, 60, 0.25);
+  }
 }
 
 .btn-icon {
   background: transparent;
-  border: 1px solid transparent;
+  border: 1px solid var(--border-color);
   color: var(--text-secondary);
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  font-size: 20px;
+  width: 40px;
+  height: 40px;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 300;
-  font-family: 'Material Symbols Outlined';
+  flex-shrink: 0;
+
+  .material-symbols-outlined {
+    font-size: 20px;
+    font-weight: 300;
+  }
 
   &:hover {
-    background: rgba(233, 75, 60, 0.05);
-    color: var(--primary-color);
-    border-color: var(--primary-color);
-    transform: none;
+    background: rgba(0, 0, 0, 0.05);
+    border-color: var(--text-secondary);
   }
 }
 
@@ -259,27 +289,40 @@
 @media (max-width: 768px) {
   .page-actions {
     padding: 1rem;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
   }
 
   .page-title {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
   }
 
   .action-buttons {
-    width: 100%;
-    justify-content: space-between;
-    gap: 0.75rem;
-    flex-wrap: nowrap;
+    gap: 0.5rem;
+    flex-shrink: 0;
   }
 
-  .btn-primary {
-    flex: 1;
-    white-space: nowrap;
-    font-size: 0.85rem;
-    padding: 0.625rem 1rem;
+  .btn-create {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+
+    .btn-label {
+      display: none;
+    }
+
+    .material-symbols-outlined {
+      font-size: 22px;
+    }
+  }
+
+  .btn-icon {
+    width: 36px;
+    height: 36px;
+
+    .material-symbols-outlined {
+      font-size: 18px;
+    }
   }
 
   .stories-content {

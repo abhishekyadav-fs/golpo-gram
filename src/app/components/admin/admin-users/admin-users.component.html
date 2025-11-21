@@ -1,0 +1,109 @@
+<div class="users-container">
+  <div class="users-header">
+    <h2>User Management</h2>
+    <div class="search-box">
+      <span class="material-symbols-outlined">search</span>
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        (input)="onSearch()"
+        placeholder="Search users by name or email..."
+        class="search-input">
+      <button *ngIf="searchTerm" (click)="searchTerm = ''; onSearch()" class="clear-btn">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    <p>Loading users...</p>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <div *ngIf="!isLoading && filteredUsers.length === 0" class="empty-state">
+    <span class="material-symbols-outlined">person_off</span>
+    <p>No users found</p>
+  </div>
+
+  <div *ngIf="!isLoading && filteredUsers.length > 0" class="users-table">
+    <div class="table-header">
+      <div class="col-user">User</div>
+      <div class="col-email">Email</div>
+      <div class="col-status">Status</div>
+      <div class="col-joined">Joined</div>
+      <div class="col-stories">Stories</div>
+      <div class="col-actions">Actions</div>
+    </div>
+
+    <div class="table-row" *ngFor="let user of filteredUsers" [class.blocked]="user.is_blocked">
+      <div class="col-user">
+        <img [src]="getProfileImage(user)" [alt]="user.full_name" class="user-avatar">
+        <div class="user-info">
+          <span class="user-name">{{ user.full_name || 'Unknown' }}</span>
+          <span class="user-id">ID: {{ user.id.substring(0, 8) }}...</span>
+        </div>
+      </div>
+      <div class="col-email">{{ user.email }}</div>
+      <div class="col-status">
+        <span class="badge" [class]="getUserStatusBadge(user)">
+          {{ getUserStatusBadge(user) }}
+        </span>
+      </div>
+      <div class="col-joined">{{ formatDate(user.created_at) }}</div>
+      <div class="col-stories">
+        <span *ngIf="user.is_storyteller">{{ user.story_count || 0 }}</span>
+        <span *ngIf="!user.is_storyteller">-</span>
+      </div>
+      <div class="col-actions">
+        <button 
+          class="btn-action btn-block" 
+          [class.btn-unblock]="user.is_blocked"
+          (click)="toggleBlockUser(user)"
+          [title]="user.is_blocked ? 'Unblock user' : 'Block user'">
+          <span class="material-symbols-outlined">
+            {{ user.is_blocked ? 'lock_open' : 'block' }}
+          </span>
+        </button>
+        <button 
+          class="btn-action btn-delete" 
+          (click)="confirmDelete(user)"
+          title="Delete user">
+          <span class="material-symbols-outlined">delete</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showDeleteConfirm" (click)="cancelDelete()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirm Delete</h3>
+        <button class="btn-close" (click)="cancelDelete()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete user <strong>{{ selectedUser?.full_name }}</strong>?</p>
+        <p class="warning-text">This action cannot be undone. All user data and stories will be permanently deleted.</p>
+        
+        <div class="form-group">
+          <label for="deleteReason">Reason (optional):</label>
+          <textarea 
+            id="deleteReason"
+            [(ngModel)]="deleteReason"
+            rows="3"
+            placeholder="Enter reason for deletion..."
+            class="form-control"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="cancelDelete()">Cancel</button>
+        <button class="btn-danger" (click)="deleteUser()">Delete User</button>
+      </div>
+    </div>
+  </div>
+</div>

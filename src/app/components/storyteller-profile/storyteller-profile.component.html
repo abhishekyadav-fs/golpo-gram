@@ -1,0 +1,88 @@
+<div class="storyteller-container">
+  <div class="loading-state" *ngIf="isLoading">
+    <span class="material-symbols-outlined loading-icon">progress_activity</span>
+    <p>Loading storyteller profile...</p>
+  </div>
+
+  <div class="error-state" *ngIf="error && !isLoading">
+    <span class="material-symbols-outlined error-icon">error</span>
+    <p>{{ error }}</p>
+    <button class="btn-primary" routerLink="/feed">Back to Feed</button>
+  </div>
+
+  <div class="storyteller-profile" *ngIf="storyteller && !isLoading">
+    <!-- Header Section -->
+    <div class="profile-header">
+      <div class="profile-photo">
+        <img [src]="getProfileImage()" [alt]="storyteller.storyteller_name" />
+      </div>
+      <div class="profile-info">
+        <h1 class="storyteller-name">{{ storyteller.storyteller_name }}</h1>
+        <div class="profile-stats">
+          <div class="stat">
+            <span class="material-symbols-outlined">auto_stories</span>
+            <span>{{ storyteller.story_count }} {{ storyteller.story_count === 1 ? 'Story' : 'Stories' }}</span>
+          </div>
+          <div class="stat">
+            <span class="material-symbols-outlined">calendar_month</span>
+            <span>Since {{ formatDate(storyteller.first_story_date) }}</span>
+          </div>
+        </div>
+        <p class="storyteller-bio" *ngIf="storyteller.storyteller_bio">
+          {{ storyteller.storyteller_bio }}
+        </p>
+        <p class="no-bio" *ngIf="!storyteller.storyteller_bio">
+          This storyteller hasn't added a bio yet.
+        </p>
+      </div>
+    </div>
+
+    <!-- Stories Section -->
+    <div class="stories-section">
+      <h2 class="section-title">
+        <span class="material-symbols-outlined">bookmark</span>
+        Stories by {{ storyteller.storyteller_name }}
+      </h2>
+
+      <div class="empty-state" *ngIf="stories.length === 0">
+        <span class="material-symbols-outlined empty-icon">post_add</span>
+        <p>No published stories yet</p>
+      </div>
+
+      <div class="stories-grid" *ngIf="stories.length > 0">
+        <div class="story-card" *ngFor="let story of stories" (click)="viewStory(story.id!)">
+          <div class="story-header">
+            <h3 class="story-title">{{ story.title }}</h3>
+            <span class="story-type" [class.audio-type]="story.story_type === 'audio'">
+              <span class="material-symbols-outlined">
+                {{ story.story_type === 'audio' ? 'mic' : 'article' }}
+              </span>
+            </span>
+          </div>
+          
+          <div class="story-content" *ngIf="story.story_type === 'text' && story.content">
+            <p>{{ getPreviewContent(story.content) }}</p>
+          </div>
+          
+          <div class="audio-indicator" *ngIf="story.story_type === 'audio'">
+            <span class="material-symbols-outlined">headphones</span>
+            <span>Audio Story</span>
+            <span class="duration" *ngIf="story.audio_duration">
+              {{ story.audio_duration }}s
+            </span>
+          </div>
+
+          <div class="story-footer">
+            <span class="locality">
+              <span class="material-symbols-outlined">location_on</span>
+              {{ story.locality_name }}
+            </span>
+            <span class="date">
+              {{ story.created_at ? (story.created_at | date: 'MMM d, y') : '' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

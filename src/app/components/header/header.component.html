@@ -11,8 +11,11 @@
     <button *ngIf="authService.isModerator()" class="btn-icon desktop-only" routerLink="/moderation" title="Moderation">
       settings
     </button>
-    <button *ngIf="authService.isAuthenticated()" class="btn-icon desktop-only" routerLink="/my-stories" title="My Stories">
+    <button *ngIf="authService.isAuthenticated() && hasStories" class="btn-icon desktop-only" routerLink="/my-stories" title="My Stories">
       edit_note
+    </button>
+    <button *ngIf="isAdmin" class="btn-icon desktop-only" routerLink="/admin" title="Bird Eye - Admin">
+      visibility
     </button>
     <button *ngIf="authService.isAuthenticated()" class="btn-icon desktop-only" routerLink="/profile" title="Profile">
       person
@@ -36,9 +39,13 @@
     <span class="material-symbols-outlined">settings</span>
     <span class="nav-label">Moderate</span>
   </button>
-  <button class="mobile-nav-btn" routerLink="/my-stories" routerLinkActive="active" title="My Stories">
+  <button *ngIf="hasStories" class="mobile-nav-btn" routerLink="/my-stories" routerLinkActive="active" title="My Stories">
     <span class="material-symbols-outlined">edit_note</span>
     <span class="nav-label">My Stories</span>
+  </button>
+  <button *ngIf="isAdmin" class="mobile-nav-btn" routerLink="/admin" routerLinkActive="active" title="Admin">
+    <span class="material-symbols-outlined">visibility</span>
+    <span class="nav-label">Admin</span>
   </button>
   <button class="mobile-nav-btn" routerLink="/profile" routerLinkActive="active" title="Profile">
     <span class="material-symbols-outlined">person</span>

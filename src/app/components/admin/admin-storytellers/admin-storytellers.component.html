@@ -1,0 +1,203 @@
+<div class="storytellers-container">
+  <div class="storytellers-header">
+    <h2>Storyteller Management</h2>
+    <div class="search-box">
+      <span class="material-symbols-outlined">search</span>
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        (input)="onSearch()"
+        placeholder="Search storytellers..."
+        class="search-input">
+      <button *ngIf="searchTerm" (click)="searchTerm = ''; onSearch()" class="clear-btn">
+        <span class="material-symbols-outlined">close</span>
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="isLoading" class="loading">
+    <p>Loading storytellers...</p>
+  </div>
+
+  <div *ngIf="error" class="error-message">
+    {{ error }}
+  </div>
+
+  <div *ngIf="!isLoading && filteredStorytellers.length === 0" class="empty-state">
+    <span class="material-symbols-outlined">auto_stories</span>
+    <p>No storytellers found</p>
+  </div>
+
+  <div *ngIf="!isLoading && filteredStorytellers.length > 0" class="storytellers-grid">
+    <div class="storyteller-card" *ngFor="let st of filteredStorytellers" [class.blocked]="st.is_blocked">
+      <div class="card-header">
+        <img [src]="getProfileImage(st)" [alt]="st.storyteller_name" class="storyteller-avatar">
+        <div class="storyteller-info">
+          <h3 class="storyteller-name">{{ st.storyteller_name }}</h3>
+          <p class="storyteller-fullname">{{ st.full_name }}</p>
+          <p class="storyteller-email">{{ st.email }}</p>
+        </div>
+        <span *ngIf="st.is_blocked" class="blocked-badge">Blocked</span>
+      </div>
+
+      <div class="card-body">
+        <p class="storyteller-bio" *ngIf="st.storyteller_bio">{{ st.storyteller_bio }}</p>
+        <p class="storyteller-bio no-bio" *ngIf="!st.storyteller_bio">No bio available</p>
+      </div>
+
+      <div class="card-stats">
+        <div class="stat">
+          <span class="stat-value">{{ st.story_count }}</span>
+          <span class="stat-label">Total Stories</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ st.approved_stories }}</span>
+          <span class="stat-label">Approved</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ st.pending_stories }}</span>
+          <span class="stat-label">Pending</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{ st.rejected_stories }}</span>
+          <span class="stat-label">Rejected</span>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <span class="join-date">Member since {{ formatDate(st.first_story_date) }}</span>
+        <div class="card-actions">
+          <button 
+            class="btn-action btn-view" 
+            (click)="viewStories(st)"
+            title="View Stories">
+            <span class="material-symbols-outlined">visibility</span>
+          </button>
+          <button 
+            class="btn-action btn-block" 
+            [class.btn-unblock]="st.is_blocked"
+            (click)="toggleBlockStoryteller(st)"
+            [title]="st.is_blocked ? 'Unblock' : 'Block'">
+            <span class="material-symbols-outlined">
+              {{ st.is_blocked ? 'lock_open' : 'block' }}
+            </span>
+          </button>
+          <button 
+            class="btn-action btn-delete" 
+            (click)="confirmDelete(st)"
+            title="Delete">
+            <span class="material-symbols-outlined">delete</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stories Modal -->
+  <div class="modal-overlay" *ngIf="showStoriesModal" (click)="closeStoriesModal()">
+    <div class="modal-content large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Stories by {{ selectedStoryteller?.storyteller_name }}</h3>
+        <button class="btn-close" (click)="closeStoriesModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div *ngIf="loadingStories" class="loading-small">
+          <p>Loading stories...</p>
+        </div>
+
+        <div *ngIf="!loadingStories && storytellerStories.length === 0" class="empty-state-small">
+          <p>No stories found</p>
+        </div>
+
+        <div *ngIf="!loadingStories && storytellerStories.length > 0" class="stories-list">
+          <div class="story-item" *ngFor="let story of storytellerStories">
+            <div class="story-header">
+              <h4 class="story-title">{{ story.title }}</h4>
+              <span class="badge" [class]="getStoryStatusBadge(story.status)">
+                {{ story.status }}
+              </span>
+            </div>
+            <p class="story-preview">{{ getPreviewContent(story) }}</p>
+            <div class="story-meta">
+              <span class="story-locality">
+                <span class="material-symbols-outlined">location_on</span>
+                {{ story.locality_name }}
+              </span>
+              <span class="story-date">
+                <span class="material-symbols-outlined">calendar_today</span>
+                {{ story.created_at ? formatDate(story.created_at.toString()) : 'N/A' }}
+              </span>
+              <span class="story-type">
+                <span class="material-symbols-outlined">
+                  {{ story.story_type === 'audio' ? 'mic' : 'article' }}
+                </span>
+                {{ story.story_type }}
+              </span>
+            </div>
+            <div class="story-actions">
+              <button 
+                class="btn-action btn-delete-small" 
+                (click)="confirmDeleteStory(story)"
+                title="Delete Story">
+                <span class="material-symbols-outlined">delete</span>
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Story Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showDeleteStoryConfirm" (click)="cancelDeleteStory()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirm Delete Story</h3>
+        <button class="btn-close" (click)="cancelDeleteStory()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete the story <strong>"{{ selectedStory?.title }}"</strong>?</p>
+        <p class="warning-text">This action cannot be undone.</p>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="cancelDeleteStory()">Cancel</button>
+        <button class="btn-danger" (click)="deleteStory()">Delete Story</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" *ngIf="showDeleteConfirm" (click)="cancelDelete()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Confirm Delete</h3>
+        <button class="btn-close" (click)="cancelDelete()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <p>Are you sure you want to delete storyteller <strong>{{ selectedStoryteller?.storyteller_name }}</strong>?</p>
+        <p class="warning-text">This will delete all their stories and cannot be undone.</p>
+        
+        <div class="form-group">
+          <label for="deleteReason">Reason (optional):</label>
+          <textarea 
+            id="deleteReason"
+            [(ngModel)]="deleteReason"
+            rows="3"
+            placeholder="Enter reason for deletion..."
+            class="form-control"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn-secondary" (click)="cancelDelete()">Cancel</button>
+        <button class="btn-danger" (click)="deleteStoryteller()">Delete Storyteller</button>
+      </div>
+    </div>
+  </div>
+</div>

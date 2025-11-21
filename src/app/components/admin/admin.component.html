@@ -1,0 +1,37 @@
+<div class="admin-container">
+  <div class="admin-header">
+    <div class="header-content">
+      <span class="material-symbols-outlined">visibility</span>
+      <h1>Bird Eye</h1>
+    </div>
+    <p class="header-subtitle">Admin Dashboard</p>
+  </div>
+
+  <nav class="admin-nav">
+    <button 
+      class="nav-item" 
+      [class.active]="isActiveTab('users')"
+      (click)="setActiveTab('users')">
+      <span class="material-symbols-outlined">group</span>
+      <span>Users</span>
+    </button>
+    <button 
+      class="nav-item" 
+      [class.active]="isActiveTab('storytellers')"
+      (click)="setActiveTab('storytellers')">
+      <span class="material-symbols-outlined">auto_stories</span>
+      <span>Storytellers</span>
+    </button>
+    <button 
+      class="nav-item" 
+      [class.active]="isActiveTab('moderators')"
+      (click)="setActiveTab('moderators')">
+      <span class="material-symbols-outlined">verified_user</span>
+      <span>Moderators</span>
+    </button>
+  </nav>
+
+  <div class="admin-content">
+    <router-outlet></router-outlet>
+  </div>
+</div>

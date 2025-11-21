@@ -5,8 +5,7 @@
       <h2 class="description-title">Share Your Local Stories</h2>
       <p class="description-text">
         Discover and share <strong>bit-sized, interesting geo tagged stories</strong>. 
-        Express yourself in your preferred format — <strong>text</strong>, <strong>audio recordings</strong>, 
-        or <strong>video clips</strong>. Connect with your community through authentic, engaging narratives 
+        Express yourself in your preferred format — <strong>text</strong> or <strong>audio story</strong>. Connect with your community through authentic, engaging narratives 
         that capture the essence of your neighborhood.
       </p>
       <div class="description-features">
@@ -15,9 +14,6 @@
         </button>
         <button class="feature-badge" (click)="filterByType('audio')" [class.active]="selectedType === 'audio'">          
           Audio Stories
-        </button>
-        <button class="feature-badge" (click)="filterByType('video')" [class.active]="selectedType === 'video'">          
-          Video Stories
         </button>
         <button class="feature-badge" (click)="filterByType('all')" [class.active]="selectedType === 'all'">          
           All Content
@@ -29,17 +25,53 @@
   <!-- Locality Filter -->
   <div class="filter-section">
     <div class="filter-left">
-      <label for="locality-filter">Filter by Locality:</label>
-      <select
-        id="locality-filter"
-        [(ngModel)]="selectedLocalityId"
-        (change)="onLocalityChange()"
-        class="locality-select"
-      >
-        <option *ngFor="let locality of localities" [value]="locality.id">
-          {{ locality.name }}
-        </option>
-      </select>
+      <label for="locality-search">Filter by Locality:</label>
+      <div class="locality-search-container">
+        <span class="material-symbols-outlined search-icon">location_on</span>
+        <input
+          id="locality-search"
+          type="text"
+          [(ngModel)]="localitySearch"
+          (input)="onLocalitySearchInput()"
+          (focus)="onLocalityInputFocus()"
+          (blur)="onLocalityInputBlur()"
+          class="locality-search-input"
+          placeholder="Type to search localities..."
+          autocomplete="off"
+        />
+        <div class="locality-dropdown" *ngIf="showLocalityDropdown && filteredLocalities.length > 0">
+          <button
+            *ngFor="let locality of filteredLocalities"
+            class="locality-option"
+            (click)="selectLocality(locality)"
+            type="button"
+          >
+            <span class="material-symbols-outlined">location_on</span>
+            <span>{{ locality.name }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-right">
+      <div class="search-box">
+        <span class="material-symbols-outlined search-icon">search</span>
+        <input 
+          type="text" 
+          placeholder="Search by storyteller..."
+          [(ngModel)]="storytellerSearch"
+          (input)="onStorytellerSearch()"
+          class="search-input"
+        />
+        <button 
+          *ngIf="storytellerSearch" 
+          class="clear-search"
+          (click)="clearSearch()"
+          title="Clear search"
+        >
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
     </div>
     
     <div class="view-toggle">
@@ -92,7 +124,15 @@
           <div>
             <h2 class="story-title">{{ story.title }}</h2>
             <div class="story-meta">
-              <span class="author">By {{ story.author_name }}</span>
+              <a 
+                class="author-link" 
+                [routerLink]="['/storyteller', story.author_id]"
+                (click)="$event.stopPropagation()"
+                *ngIf="story.author_id"
+              >
+                {{ story.author_name }}
+              </a>
+              <span class="author" *ngIf="!story.author_id">{{ story.author_name }}</span>
               <span class="separator">•</span>
               <span class="date">{{ formatDate(story.created_at) }}</span>
             </div>

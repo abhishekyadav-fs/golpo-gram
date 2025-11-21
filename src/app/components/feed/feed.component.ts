@@ -1,23 +1,30 @@
 import { Component, OnInit, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { StoryService } from '../../services/story.service';
 import { LocalityService } from '../../services/locality.service';
+import { StorytellerService } from '../../services/storyteller.service';
 import { AuthService } from '../../services/auth.service';
 import { Story, Locality } from '../../models/story.model';
+import { Storyteller } from '../../models/storyteller.model';
 
 @Component({
   selector: 'app-feed',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './feed.component.html',
   styleUrls: ['./feed.component.scss']
 })
 export class FeedComponent implements OnInit {
   stories: Story[] = [];
+  allStories: Story[] = [];
   localities: Locality[] = [];
+  filteredLocalities: Locality[] = [];
   selectedLocalityId: string = '';
+  selectedLocalityName: string = '';
+  localitySearch: string = '';
+  showLocalityDropdown: boolean = false;
   selectedType: string = 'all';
   viewMode: 'grid' | 'list' = 'grid';
   isLoading = false;
@@ -25,6 +32,7 @@ export class FeedComponent implements OnInit {
   errorMessage = '';
   noStoriesMessage = '';
   expandedStories: Set<string> = new Set();
+  storytellerSearch: string = '';
   private page = 0;
   private pageSize = 10;
   private hasMore = true;
@@ -32,6 +40,7 @@ export class FeedComponent implements OnInit {
   constructor(
     private storyService: StoryService,
     private localityService: LocalityService,
+    private storytellerService: StorytellerService,
     public authService: AuthService,
     private router: Router
   ) {}
@@ -54,8 +63,11 @@ export class FeedComponent implements OnInit {
   async loadLocalities() {
     try {
       this.localities = await this.localityService.getLocalities();
+      this.filteredLocalities = this.localities.slice(0, 3); // Show first 3 initially
       if (this.localities.length > 0) {
         this.selectedLocalityId = this.localities[0].id;
+        this.selectedLocalityName = this.localities[0].name;
+        this.localitySearch = this.localities[0].name;
         await this.loadStories();
       }
     } catch (error: any) {
@@ -72,9 +84,11 @@ export class FeedComponent implements OnInit {
     this.page = 0;
     this.hasMore = true;
     this.stories = [];
+    this.allStories = [];
 
     try {
-      this.stories = await this.storyService.getStoriesByLocality(this.selectedLocalityId);
+      this.allStories = await this.storyService.getStoriesByLocality(this.selectedLocalityId);
+      this.applyFilters();
       
       // Check if no stories were returned
       if (this.stories.length === 0) {
@@ -90,6 +104,74 @@ export class FeedComponent implements OnInit {
     } finally {
       this.isLoading = false;
     }
+  }
+
+  applyFilters() {
+    let filtered = [...this.allStories];
+
+    // Filter by storyteller search
+    if (this.storytellerSearch.trim()) {
+      const searchTerm = this.storytellerSearch.toLowerCase();
+      filtered = filtered.filter(story => 
+        story.author_name?.toLowerCase().includes(searchTerm)
+      );
+    }
+
+    this.stories = filtered;
+    
+    if (this.stories.length === 0 && this.storytellerSearch.trim()) {
+      this.noStoriesMessage = `No stories found for storyteller "${this.storytellerSearch}"`;
+    }
+  }
+
+  onStorytellerSearch() {
+    this.applyFilters();
+  }
+
+  clearSearch() {
+    this.storytellerSearch = '';
+    this.applyFilters();
+  }
+
+  onLocalitySearchInput() {
+    const searchTerm = this.localitySearch.trim().toLowerCase();
+    
+    if (searchTerm.length < 2) {
+      // Show first 3 localities if less than 2 characters
+      this.filteredLocalities = this.localities.slice(0, 3);
+      this.showLocalityDropdown = false;
+    } else {
+      // Filter localities and show top 3 matches
+      this.filteredLocalities = this.localities
+        .filter(loc => loc.name.toLowerCase().includes(searchTerm))
+        .slice(0, 3);
+      this.showLocalityDropdown = this.filteredLocalities.length > 0;
+    }
+  }
+
+  selectLocality(locality: Locality) {
+    this.selectedLocalityId = locality.id;
+    this.selectedLocalityName = locality.name;
+    this.localitySearch = locality.name;
+    this.showLocalityDropdown = false;
+    this.onLocalityChange();
+  }
+
+  onLocalityInputFocus() {
+    if (this.localitySearch.trim().length >= 2) {
+      this.onLocalitySearchInput();
+    }
+  }
+
+  onLocalityInputBlur() {
+    // Delay to allow click on dropdown item
+    setTimeout(() => {
+      this.showLocalityDropdown = false;
+      // Restore selected locality name if search was cleared
+      if (!this.localitySearch.trim()) {
+        this.localitySearch = this.selectedLocalityName;
+      }
+    }, 200);
   }
 
   async loadMoreStories() {

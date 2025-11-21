@@ -2,7 +2,9 @@
   <div class="profile-card">
     <div class="profile-header">
       <h1>Edit Profile</h1>
-      <button class="btn-icon" routerLink="/feed" title="Home">home</button>
+      <button class="btn-icon" routerLink="/feed" title="Home">
+        <span class="material-symbols-outlined">home</span>
+      </button>
     </div>
 
     <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
@@ -13,14 +15,15 @@
             <img [src]="imagePreview" alt="Profile Image">
           </div>
           <div class="image-placeholder" *ngIf="!imagePreview">
-            <span class="placeholder-icon">account_circle</span>
+            <span class="material-symbols-outlined placeholder-icon">account_circle</span>
             <p>No profile image</p>
           </div>
         </div>
         
         <div class="image-actions">
           <label for="profile-image" class="btn-upload">
-            📷 Choose Image
+            <span class="material-symbols-outlined">photo_camera</span>
+            <span>Choose Image</span>
           </label>
           <input
             type="file"
@@ -35,7 +38,8 @@
             *ngIf="selectedFile"
             (click)="removeImage()"
           >
-            ❌ Remove
+            <span class="material-symbols-outlined">close</span>
+            <span>Remove</span>
           </button>
         </div>
         <p class="image-help">Maximum file size: 5MB. Supported formats: JPG, PNG, GIF</p>
@@ -68,7 +72,10 @@
         <div class="error-text" *ngIf="profileForm.get('email')?.invalid && profileForm.get('email')?.touched">
           Please enter a valid email address
         </div>
-        <p class="help-text">⚠️ Changing your email will require verification</p>
+        <p class="help-text">
+          <span class="material-symbols-outlined">info</span>
+          Changing your email will require verification
+        </p>
       </div>
 
       <!-- Messages -->
@@ -87,7 +94,10 @@
           class="btn-primary"
           [disabled]="isLoading || profileForm.invalid"
         >
-          <span *ngIf="!isLoading">💾 Save Changes</span>
+          <ng-container *ngIf="!isLoading">
+            <span class="material-symbols-outlined">save</span>
+            <span>Save Changes</span>
+          </ng-container>
           <span *ngIf="isLoading">Updating...</span>
         </button>
         <button

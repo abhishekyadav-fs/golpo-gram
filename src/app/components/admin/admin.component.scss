@@ -1,0 +1,120 @@
+.admin-container {
+  min-height: 100vh;
+  background: var(--background);
+  padding: 2rem 1rem;
+}
+
+.admin-header {
+  max-width: 1200px;
+  margin: 0 auto 2rem;
+  text-align: center;
+
+  .header-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-bottom: 0.5rem;
+
+    .material-symbols-outlined {
+      font-size: 32px;
+      font-weight: 300;
+      color: var(--primary-color);
+    }
+
+    h1 {
+      font-family: var(--font-heading);
+      font-size: 2rem;
+      color: var(--secondary-color);
+      margin: 0;
+      font-weight: 300;
+      letter-spacing: -0.01em;
+    }
+  }
+
+  .header-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    font-weight: 300;
+    margin: 0;
+  }
+}
+
+.admin-nav {
+  max-width: 1200px;
+  margin: 0 auto 2rem;
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  background: var(--card-background);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  .nav-item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    color: var(--secondary-color);
+    font-size: 0.95rem;
+    font-weight: 300;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    .material-symbols-outlined {
+      font-size: 20px;
+      font-weight: 300;
+    }
+
+    &:hover {
+      background: rgba(225, 173, 1, 0.05);
+      border-color: var(--primary-color);
+      color: var(--primary-color);
+    }
+
+    &.active {
+      background: var(--primary-color);
+      border-color: var(--primary-color);
+      color: #ffffff;
+    }
+  }
+}
+
+.admin-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .admin-container {
+    padding: 1rem 0.5rem;
+  }
+
+  .admin-header {
+    .header-content {
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .material-symbols-outlined {
+        font-size: 28px;
+      }
+    }
+  }
+
+  .admin-nav {
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+
+    .nav-item {
+      padding: 0.625rem 1rem;
+    }
+  }
+}

@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { SupabaseClient } from '@supabase/supabase-js';
 import { Story, MediaFile } from '../models/story.model';
 import { AuthService } from './auth.service';
+import { EventBusService, EventType } from './event-bus.service';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +10,10 @@ import { AuthService } from './auth.service';
 export class StoryService {
   private supabase: SupabaseClient;
 
-  constructor(private authService: AuthService) {
+  constructor(
+    private authService: AuthService,
+    private eventBus: EventBusService
+  ) {
     this.supabase = this.authService.getSupabaseClient();
   }
 
@@ -44,6 +48,12 @@ export class StoryService {
 
       if (mediaError) throw mediaError;
     }
+
+    // Publish story created event
+    this.eventBus.publish({
+      type: EventType.STORY_CREATED,
+      payload: { story: storyData, authorId: user.id }
+    });
 
     return storyData;
   }
@@ -84,6 +94,12 @@ export class StoryService {
       .single();
 
     if (storyError) throw storyError;
+
+    // Publish story created event
+    this.eventBus.publish({
+      type: EventType.STORY_CREATED,
+      payload: { story: storyData, authorId: user.id }
+    });
 
     return storyData;
   }
@@ -138,6 +154,7 @@ export class StoryService {
       `)
       .eq('locality_id', localityId)
       .eq('status', status)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
@@ -154,6 +171,7 @@ export class StoryService {
         media_files(*)
       `)
       .eq('id', id)
+      .is('deleted_at', null)
       .single();
 
     if (error) throw error;
@@ -176,6 +194,7 @@ export class StoryService {
         media_files(*)
       `)
       .eq('status', 'pending')
+      .is('deleted_at', null)
       .order('created_at', { ascending: true });
 
     if (error) throw error;
@@ -188,7 +207,7 @@ export class StoryService {
       throw new Error('Unauthorized');
     }
 
-    const { error } = await this.supabase
+    const { data: updatedStory, error } = await this.supabase
       .from('stories')
       .update({
         status,
@@ -196,9 +215,24 @@ export class StoryService {
         moderator_notes: notes,
         moderated_at: new Date().toISOString()
       })
-      .eq('id', storyId);
+      .eq('id', storyId)
+      .select()
+      .single();
 
     if (error) throw error;
+
+    // Publish story moderation event
+    const eventType = status === 'approved' ? EventType.STORY_APPROVED : EventType.STORY_REJECTED;
+    this.eventBus.publish({
+      type: eventType,
+      payload: { 
+        story: updatedStory, 
+        storyId, 
+        status, 
+        moderatorId: user.id,
+        notes 
+      }
+    });
   }
 
   async getMyStories(): Promise<Story[]> {
@@ -213,9 +247,33 @@ export class StoryService {
         media_files(*)
       `)
       .eq('author_id', user.id)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
     return data || [];
+  }
+
+  async getStoriesByAuthor(authorId: string, status: string = 'approved'): Promise<Story[]> {
+    const { data, error } = await this.supabase
+      .from('stories')
+      .select(`
+        *,
+        locality:localities(name),
+        author:profiles!stories_author_id_fkey(full_name, storyteller_name),
+        media_files(*)
+      `)
+      .eq('author_id', authorId)
+      .eq('status', status)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    
+    return (data || []).map(story => ({
+      ...story,
+      locality_name: story.locality?.name || 'Unknown',
+      author_name: story.author?.storyteller_name || story.author?.full_name || 'Anonymous'
+    }));
   }
 }
