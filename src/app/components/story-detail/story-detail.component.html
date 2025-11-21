@@ -19,7 +19,7 @@
       <h1 class="story-title">{{ story.title }}</h1>
       
       <div class="story-meta">
-        <span class="meta-item">
+        <span class="meta-item clickable-author" (click)="goToStorytellerProfile()">
           <span class="material-symbols-outlined">person</span>
           {{ story.author_name }}
         </span>

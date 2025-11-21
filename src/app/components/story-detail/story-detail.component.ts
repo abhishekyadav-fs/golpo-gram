@@ -88,6 +88,12 @@ export class StoryDetailComponent implements OnInit {
     return this.story && this.story.story_images && this.story.story_images.length > 0;
   }
 
+  goToStorytellerProfile(): void {
+    if (this.story && this.story.author_id) {
+      this.router.navigate(['/storyteller', this.story.author_id]);
+    }
+  }
+
   goBack(): void {
     this.router.navigate(['/feed']);
   }

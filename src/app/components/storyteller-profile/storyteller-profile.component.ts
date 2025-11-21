@@ -44,6 +44,10 @@ export class StorytellerProfileComponent implements OnInit {
       // Load storyteller profile
       this.storyteller = await this.storytellerService.getStorytellerProfile(storytellerId);
       
+      console.log('Loaded storyteller profile:', this.storyteller);
+      console.log('Storyteller photo URL:', this.storyteller?.storyteller_photo_url);
+      console.log('Profile image result:', this.getProfileImage());
+      
       if (!this.storyteller) {
         this.error = 'Storyteller not found';
         return;
@@ -61,7 +65,9 @@ export class StorytellerProfileComponent implements OnInit {
   }
 
   getProfileImage(): string {
-    return this.storyteller?.storyteller_photo_url || 'assets/default-avatar.svg';
+    const url = this.storyteller?.storyteller_photo_url || this.storyteller?.profile_image_url || 'assets/default-avatar.svg';
+    console.log('getProfileImage returning:', url);
+    return url;
   }
 
   formatDate(date: Date | undefined): string {

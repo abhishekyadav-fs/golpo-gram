@@ -119,6 +119,23 @@
     font-size: 18px;
     color: var(--primary-color);
   }
+
+  &.clickable-author {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+    padding: 0.25rem 0.5rem;
+    margin-left: -0.5rem;
+
+    &:hover {
+      background: var(--primary-lighter);
+      color: var(--primary-color);
+      
+      .material-symbols-outlined {
+        color: var(--primary-dark);
+      }
+    }
+  }
 }
 
 .story-badges {

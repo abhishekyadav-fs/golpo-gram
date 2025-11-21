@@ -160,17 +160,35 @@ export class AuthService {
         }
 
         if (profile) {
+          // Convert storage paths to public URLs if needed
+          let profileImageUrl = profile.profile_image_url;
+          if (profileImageUrl && !profileImageUrl.startsWith('http')) {
+            const { data: publicUrlData } = this.supabase.storage
+              .from('profile-images')
+              .getPublicUrl(profileImageUrl);
+            profileImageUrl = publicUrlData.publicUrl;
+          }
+
+          let storytellerPhotoUrl = profile.storyteller_photo_url;
+          if (storytellerPhotoUrl && !storytellerPhotoUrl.startsWith('http')) {
+            const { data: publicUrlData } = this.supabase.storage
+              .from('profile-images')
+              .getPublicUrl(storytellerPhotoUrl);
+            storytellerPhotoUrl = publicUrlData.publicUrl;
+          }
+
           this.currentUserSubject.next({
             id: profile.id,
             email: user.email || '',
             full_name: profile.full_name,
-            profile_image_url: profile.profile_image_url,
+            profile_image_url: profileImageUrl,
             role_id: profile.role_id,
             role_name: profile.role?.name,
             created_at: new Date(profile.created_at),
             is_storyteller: profile.is_storyteller,
             storyteller_name: profile.storyteller_name,
-            storyteller_bio: profile.storyteller_bio
+            storyteller_bio: profile.storyteller_bio,
+            storyteller_photo_url: storytellerPhotoUrl
           });
         } else {
           // Profile doesn't exist, create it
@@ -313,6 +331,9 @@ export class AuthService {
 
       // Add storyteller fields if user is a storyteller
       if (user.is_storyteller) {
+        // Set storyteller_photo_url to match profile_image_url for storytellers
+        profileUpdates.storyteller_photo_url = profileImageUrl;
+        
         if (updates.storyteller_name !== undefined) {
           profileUpdates.storyteller_name = updates.storyteller_name;
         }

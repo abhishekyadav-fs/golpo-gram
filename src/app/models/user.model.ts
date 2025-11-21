@@ -9,6 +9,7 @@ export interface User {
   is_storyteller?: boolean;
   storyteller_name?: string;
   storyteller_bio?: string;
+  storyteller_photo_url?: string;
 }
 
 export interface Role {

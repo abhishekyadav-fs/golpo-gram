@@ -16,7 +16,7 @@ export class StorytellerService {
   async getStorytellerProfile(userId: string): Promise<Storyteller | null> {
     const { data, error } = await this.supabase
       .from('profiles')
-      .select('id, full_name, storyteller_name, storyteller_bio, storyteller_photo_url, story_count, first_story_date, created_at')
+      .select('id, full_name, storyteller_name, storyteller_bio, storyteller_photo_url, profile_image_url, story_count, first_story_date, created_at')
       .eq('id', userId)
       .eq('is_storyteller', true)
       .single();
@@ -26,7 +26,38 @@ export class StorytellerService {
       return null;
     }
 
-    return data as Storyteller;
+    console.log('Raw profile data from database:', data);
+
+    // Convert storage paths to public URLs if needed
+    let photoUrl = data.storyteller_photo_url;
+    if (photoUrl && !photoUrl.startsWith('http')) {
+      console.log('Converting storyteller_photo_url from path to URL:', photoUrl);
+      const { data: publicUrlData } = this.supabase.storage
+        .from('profile-images')
+        .getPublicUrl(photoUrl);
+      photoUrl = publicUrlData.publicUrl;
+      console.log('Converted to public URL:', photoUrl);
+    }
+
+    // Also check profile_image_url as fallback
+    let profileImageUrl = data.profile_image_url;
+    if (profileImageUrl && !profileImageUrl.startsWith('http')) {
+      console.log('Converting profile_image_url from path to URL:', profileImageUrl);
+      const { data: publicUrlData } = this.supabase.storage
+        .from('profile-images')
+        .getPublicUrl(profileImageUrl);
+      profileImageUrl = publicUrlData.publicUrl;
+      console.log('Converted to public URL:', profileImageUrl);
+    }
+
+    const result = {
+      ...data,
+      storyteller_photo_url: photoUrl,
+      profile_image_url: profileImageUrl
+    } as Storyteller;
+
+    console.log('Returning storyteller profile:', result);
+    return result;
   }
 
   async getAllStorytellers(): Promise<Storyteller[]> {
