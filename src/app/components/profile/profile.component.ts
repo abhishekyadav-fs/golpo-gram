@@ -37,7 +37,9 @@ export class ProfileComponent implements OnInit {
 
     this.profileForm = this.fb.group({
       email: [this.currentUser.email, [Validators.required, Validators.email]],
-      full_name: [this.currentUser.full_name, [Validators.required]]
+      full_name: [this.currentUser.full_name, [Validators.required]],
+      storyteller_name: [this.currentUser.storyteller_name || ''],
+      storyteller_bio: [this.currentUser.storyteller_bio || '', [Validators.maxLength(500)]]
     });
 
     if (this.currentUser.profile_image_url) {
@@ -87,13 +89,15 @@ export class ProfileComponent implements OnInit {
     this.successMessage = '';
 
     try {
-      const { email, full_name } = this.profileForm.value;
+      const { email, full_name, storyteller_name, storyteller_bio } = this.profileForm.value;
 
       // Update profile
       await this.authService.updateProfile({
         email,
         full_name,
-        profile_image: this.selectedFile
+        profile_image: this.selectedFile,
+        storyteller_name,
+        storyteller_bio
       });
 
       this.successMessage = 'Profile updated successfully!';

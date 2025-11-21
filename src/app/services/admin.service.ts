@@ -162,6 +162,7 @@ export class AdminService {
         storyteller_name,
         storyteller_bio,
         storyteller_photo_url,
+        profile_image_url,
         story_count,
         first_story_date,
         is_blocked
@@ -199,6 +200,7 @@ export class AdminService {
         storyteller_name,
         storyteller_bio,
         storyteller_photo_url,
+        profile_image_url,
         story_count,
         first_story_date,
         is_blocked
@@ -284,6 +286,23 @@ export class AdminService {
       type: EventType.STORY_DELETED,
       payload: { storyId, authorId: story?.author_id }
     });
+  }
+
+  async sendStoryToReview(storyId: string, reason?: string): Promise<void> {
+    const { error } = await this.supabase
+      .from('stories')
+      .update({
+        status: 'pending',
+        moderator_notes: reason || 'Sent back for review by admin'
+      })
+      .eq('id', storyId);
+
+    if (error) {
+      console.error('Error sending story to review:', error);
+      throw error;
+    }
+
+    await this.logAdminAction('send_to_review', storyId, reason);
   }
 
   // ============ MODERATOR MANAGEMENT ============

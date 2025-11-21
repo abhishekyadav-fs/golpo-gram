@@ -6,6 +6,9 @@ export interface User {
   role_id: string;
   role_name?: 'user' | 'moderator' | 'admin';
   created_at: Date;
+  is_storyteller?: boolean;
+  storyteller_name?: string;
+  storyteller_bio?: string;
 }
 
 export interface Role {

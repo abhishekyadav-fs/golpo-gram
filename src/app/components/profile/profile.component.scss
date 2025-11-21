@@ -326,6 +326,34 @@
   }
 }
 
+.storyteller-section {
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--border-color);
+
+  .section-title {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    color: var(--secondary-color);
+    margin: 0 0 1.5rem 0;
+    font-weight: 300;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+
+    .material-symbols-outlined {
+      font-size: 24px;
+      font-weight: 300;
+      color: var(--primary-color);
+    }
+  }
+
+  textarea.form-control {
+    resize: vertical;
+    min-height: 100px;
+  }
+}
+
 @media (max-width: 768px) {
   .profile-card {
     padding: 1.5rem;

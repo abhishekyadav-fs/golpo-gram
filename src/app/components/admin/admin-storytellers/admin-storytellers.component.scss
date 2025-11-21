@@ -28,6 +28,9 @@
   border: 1px solid var(--border-color);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.2s ease;
+  height: 520px;
+  display: flex;
+  flex-direction: column;
 
   &:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -96,17 +99,67 @@
 
   .card-body {
     padding: 1rem 1.5rem;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
 
     .storyteller-bio {
-      margin: 0;
-      font-size: 0.9rem;
-      color: var(--text-primary);
-      font-weight: 300;
-      line-height: 1.5;
+      .bio-text {
+        margin: 0 0 0.5rem 0;
+        font-size: 0.9rem;
+        color: var(--text-primary);
+        font-weight: 300;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        max-height: none;
+        overflow: visible;
+
+        &.expanded {
+          max-height: 200px;
+          overflow-y: auto;
+          padding-right: 0.5rem;
+          scrollbar-width: thin;
+          scrollbar-color: var(--primary-color) var(--border-color);
+
+          &::-webkit-scrollbar {
+            width: 6px;
+          }
+
+          &::-webkit-scrollbar-track {
+            background: var(--border-color);
+            border-radius: 3px;
+          }
+
+          &::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 3px;
+
+            &:hover {
+              background: var(--secondary-color);
+            }
+          }
+        }
+      }
 
       &.no-bio {
         color: var(--text-secondary);
         font-style: italic;
+      }
+    }
+
+    .read-more-btn {
+      background: transparent;
+      border: none;
+      color: var(--primary-color);
+      font-size: 0.85rem;
+      font-weight: 300;
+      cursor: pointer;
+      padding: 0;
+      transition: all 0.2s ease;
+
+      &:hover {
+        color: var(--secondary-color);
+        text-decoration: underline;
       }
     }
   }
@@ -242,6 +295,25 @@
     margin-bottom: 0.75rem;
     gap: 1rem;
 
+    .story-title-link {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+      flex: 1;
+      transition: all 0.2s ease;
+
+      &:hover {
+        .story-title {
+          color: var(--primary-color);
+        }
+
+        .external-link {
+          color: var(--primary-color);
+        }
+      }
+    }
+
     .story-title {
       font-family: var(--font-heading);
       font-size: 1.1rem;
@@ -249,6 +321,13 @@
       margin: 0;
       font-weight: 300;
       flex: 1;
+      transition: color 0.2s ease;
+    }
+
+    .external-link {
+      font-size: 18px;
+      color: var(--text-secondary);
+      transition: color 0.2s ease;
     }
 
     .badge {
@@ -311,9 +390,11 @@
     display: flex;
     gap: 0.5rem;
     justify-content: flex-end;
+    flex-wrap: wrap;
 
     .btn-action,
-    .btn-delete-small {
+    .btn-delete-small,
+    .btn-review {
       background: transparent;
       border: 1px solid var(--error-color);
       color: var(--error-color);
@@ -334,6 +415,15 @@
 
       &:hover {
         background: rgba(244, 67, 54, 0.1);
+      }
+    }
+
+    .btn-review {
+      border-color: #2196F3;
+      color: #2196F3;
+
+      &:hover {
+        background: rgba(33, 150, 243, 0.1);
       }
     }
   }

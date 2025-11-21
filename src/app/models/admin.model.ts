@@ -17,6 +17,7 @@ export interface Storyteller {
   storyteller_name: string;
   storyteller_bio?: string;
   storyteller_photo_url?: string;
+  profile_image_url?: string;
   story_count: number;
   first_story_date: string;
   email: string;

@@ -167,7 +167,10 @@ export class AuthService {
             profile_image_url: profile.profile_image_url,
             role_id: profile.role_id,
             role_name: profile.role?.name,
-            created_at: new Date(profile.created_at)
+            created_at: new Date(profile.created_at),
+            is_storyteller: profile.is_storyteller,
+            storyteller_name: profile.storyteller_name,
+            storyteller_bio: profile.storyteller_bio
           });
         } else {
           // Profile doesn't exist, create it
@@ -262,7 +265,13 @@ export class AuthService {
     await this.loadUser();
   }
 
-  async updateProfile(updates: { email?: string; full_name?: string; profile_image?: File | null }): Promise<void> {
+  async updateProfile(updates: { 
+    email?: string; 
+    full_name?: string; 
+    profile_image?: File | null;
+    storyteller_name?: string;
+    storyteller_bio?: string;
+  }): Promise<void> {
     const user = this.getCurrentUser();
     if (!user) throw new Error('No user logged in');
 
@@ -295,14 +304,27 @@ export class AuthService {
         profileImageUrl = publicUrl;
       }
 
+      // Prepare update object
+      const profileUpdates: any = {
+        email: updates.email || user.email,
+        full_name: updates.full_name || user.full_name,
+        profile_image_url: profileImageUrl
+      };
+
+      // Add storyteller fields if user is a storyteller
+      if (user.is_storyteller) {
+        if (updates.storyteller_name !== undefined) {
+          profileUpdates.storyteller_name = updates.storyteller_name;
+        }
+        if (updates.storyteller_bio !== undefined) {
+          profileUpdates.storyteller_bio = updates.storyteller_bio;
+        }
+      }
+
       // Update profile in database
       const { error: profileError } = await this.supabase
         .from('profiles')
-        .update({
-          email: updates.email || user.email,
-          full_name: updates.full_name || user.full_name,
-          profile_image_url: profileImageUrl
-        })
+        .update(profileUpdates)
         .eq('id', user.id);
 
       if (profileError) throw profileError;

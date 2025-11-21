@@ -34,14 +34,56 @@
       </div>
 
       <div class="story-badges">
-        <span class="badge badge-type">{{ story.type }}</span>
+        <span class="badge badge-type">{{ story.story_type || 'text' }}</span>
         <span class="badge badge-status" [class.approved]="story.status === 'approved'">
           {{ story.status }}
         </span>
       </div>
+
+      <!-- Display metadata badges -->
+      <div class="story-metadata" *ngIf="story.genre || story.language || story.description">
+        <span class="metadata-badge" *ngIf="story.genre">
+          <span class="material-symbols-outlined">category</span>
+          {{ story.genre }}
+        </span>
+        <span class="metadata-badge" *ngIf="story.language">
+          <span class="material-symbols-outlined">language</span>
+          {{ story.language }}
+        </span>
+      </div>
+
+      <!-- Description -->
+      <p class="story-description" *ngIf="story.description">
+        {{ story.description }}
+      </p>
+
+      <!-- Tags -->
+      <div class="story-tags" *ngIf="story.tags && story.tags.length > 0">
+        <span class="tag-chip" *ngFor="let tag of story.tags">
+          {{ tag.name }}
+        </span>
+      </div>
+
+      <!-- Main Characters -->
+      <div class="story-characters" *ngIf="story.main_characters && story.main_characters.length > 0">
+        <h4>
+          <span class="material-symbols-outlined">group</span>
+          Characters
+        </h4>
+        <div class="characters-list">
+          <span class="character-name" *ngFor="let character of story.main_characters">
+            {{ character }}
+          </span>
+        </div>
+      </div>
     </header>
 
     <div class="story-content">
+      <!-- Cover Image -->
+      <div class="story-cover" *ngIf="story.cover_image_url">
+        <img [src]="story.cover_image_url" [alt]="story.title + ' cover'" />
+      </div>
+
       <!-- Audio Story Player -->
       <div *ngIf="story.story_type === 'audio' && story.audio_url" class="audio-story-section">
         <div class="audio-player-container">
@@ -59,8 +101,11 @@
         </div>
       </div>
 
-      <!-- Text Content -->
-      <p *ngIf="story.content" class="story-text">{{ story.content }}</p>
+      <!-- Text Content with Inline Images -->
+      <div *ngIf="story.content && hasInlineImages()" class="story-text" [innerHTML]="getStoryContentWithImages()"></div>
+      
+      <!-- Plain Text Content (no inline images) -->
+      <p *ngIf="story.content && !hasInlineImages()" class="story-text">{{ story.content }}</p>
     </div>
 
     <footer class="story-footer">

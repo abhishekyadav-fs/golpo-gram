@@ -41,7 +41,17 @@
       </div>
 
       <div class="card-body">
-        <p class="storyteller-bio" *ngIf="st.storyteller_bio">{{ st.storyteller_bio }}</p>
+        <div class="storyteller-bio" *ngIf="st.storyteller_bio">
+          <p class="bio-text" [class.expanded]="isBioExpanded(st.id)">
+            {{ isBioExpanded(st.id) ? st.storyteller_bio : getTruncatedBio(st.storyteller_bio, st.id) }}
+          </p>
+          <button 
+            *ngIf="shouldShowReadMore(st.storyteller_bio)" 
+            class="read-more-btn"
+            (click)="toggleBio(st.id)">
+            {{ isBioExpanded(st.id) ? 'Show Less' : 'Read More' }}
+          </button>
+        </div>
         <p class="storyteller-bio no-bio" *ngIf="!st.storyteller_bio">No bio available</p>
       </div>
 
@@ -114,7 +124,10 @@
         <div *ngIf="!loadingStories && storytellerStories.length > 0" class="stories-list">
           <div class="story-item" *ngFor="let story of storytellerStories">
             <div class="story-header">
-              <h4 class="story-title">{{ story.title }}</h4>
+              <a [href]="'/story/' + story.id" target="_blank" class="story-title-link">
+                <h4 class="story-title">{{ story.title }}</h4>
+                <span class="material-symbols-outlined external-link">open_in_new</span>
+              </a>
               <span class="badge" [class]="getStoryStatusBadge(story.status)">
                 {{ story.status }}
               </span>
@@ -137,6 +150,14 @@
               </span>
             </div>
             <div class="story-actions">
+              <button 
+                *ngIf="story.status !== 'pending'"
+                class="btn-action btn-review" 
+                (click)="sendToReview(story)"
+                title="Send to Moderator for Review">
+                <span class="material-symbols-outlined">rate_review</span>
+                Send to Review
+              </button>
               <button 
                 class="btn-action btn-delete-small" 
                 (click)="confirmDeleteStory(story)"

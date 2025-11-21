@@ -78,6 +78,45 @@
         </p>
       </div>
 
+      <!-- Storyteller Section -->
+      <div class="storyteller-section" *ngIf="currentUser?.is_storyteller">
+        <h3 class="section-title">
+          <span class="material-symbols-outlined">auto_stories</span>
+          Storyteller Profile
+        </h3>
+
+        <div class="form-group">
+          <label for="storyteller_name">Storyteller Name</label>
+          <input
+            type="text"
+            id="storyteller_name"
+            formControlName="storyteller_name"
+            class="form-control"
+            placeholder="Your storyteller name (optional)"
+          >
+          <p class="help-text">
+            <span class="material-symbols-outlined">info</span>
+            This name will be displayed on your stories
+          </p>
+        </div>
+
+        <div class="form-group">
+          <label for="storyteller_bio">Bio</label>
+          <textarea
+            id="storyteller_bio"
+            formControlName="storyteller_bio"
+            class="form-control"
+            rows="4"
+            placeholder="Tell us about yourself as a storyteller..."
+            maxlength="500"
+          ></textarea>
+          <p class="help-text">
+            <span class="material-symbols-outlined">info</span>
+            {{profileForm.get('storyteller_bio')?.value?.length || 0}}/500 characters
+          </p>
+        </div>
+      </div>
+
       <!-- Messages -->
       <div class="success-message" *ngIf="successMessage">
         {{ successMessage }}

@@ -1,25 +1,29 @@
 import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray, FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { StoryService } from '../../services/story.service';
 import { LocalityService } from '../../services/locality.service';
 import { AuthService } from '../../services/auth.service';
-import { Locality } from '../../models/story.model';
+import { Locality, Genre, Tag } from '../../models/story.model';
 
 @Component({
   selector: 'app-create-story',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './create-story.component.html',
   styleUrls: ['./create-story.component.scss']
 })
 export class CreateStoryComponent implements OnInit {
   @ViewChild('audioPlayer') audioPlayer?: ElementRef<HTMLAudioElement>;
+  @ViewChild('richTextEditor') richTextEditor?: ElementRef<HTMLDivElement>;
   
   storyForm!: FormGroup;
   audioStoryForm!: FormGroup;
   localities: Locality[] = [];
+  genres: Genre[] = [];
+  availableTags: Tag[] = [];
+  selectedTags: Tag[] = [];
   selectedFiles: File[] = [];
   filePreviews: { url: string; type: string; name: string }[] = [];
   isLoading = false;
@@ -27,6 +31,33 @@ export class CreateStoryComponent implements OnInit {
   successMessage = '';
   editorContent = '';
   userName: string = '';
+
+  // Cover image
+  coverImage: File | null = null;
+  coverImagePreview: string = '';
+
+  // Story inline images (max 5, max 2MB each)
+  storyImages: { file: File; preview: string; caption: string }[] = [];
+  maxStoryImages = 5;
+  maxImageSize = 2 * 1024 * 1024; // 2MB
+
+  // Language options
+  languages = [
+    { code: 'en', name: 'English' },
+    { code: 'hi', name: 'Hindi' },
+    { code: 'bn', name: 'Bengali' },
+    { code: 'te', name: 'Telugu' },
+    { code: 'mr', name: 'Marathi' },
+    { code: 'ta', name: 'Tamil' },
+    { code: 'gu', name: 'Gujarati' },
+    { code: 'kn', name: 'Kannada' },
+    { code: 'ml', name: 'Malayalam' },
+    { code: 'pa', name: 'Punjabi' },
+    { code: 'other', name: 'Other' }
+  ];
+
+  // Tag input
+  tagInput: string = '';
 
   // Story type selection
   storyType: 'text' | 'audio' | null = null;
@@ -70,16 +101,26 @@ export class CreateStoryComponent implements OnInit {
     this.storyForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(5)]],
       content: ['', [Validators.required, Validators.minLength(20)]],
-      locality_id: ['', Validators.required]
+      description: ['', [Validators.required, Validators.minLength(20), Validators.maxLength(500)]],
+      locality_id: ['', Validators.required],
+      genre: ['', Validators.required],
+      language: ['en', Validators.required],
+      main_characters: this.fb.array([])
     });
 
     this.audioStoryForm = this.fb.group({
       title: ['', [Validators.required, Validators.minLength(5)]],
+      description: ['', [Validators.required, Validators.minLength(20), Validators.maxLength(500)]],
       locality_id: ['', Validators.required],
-      audio_url: ['', Validators.required]
+      genre: ['', Validators.required],
+      language: ['en', Validators.required],
+      audio_url: ['', Validators.required],
+      main_characters: this.fb.array([])
     });
 
     await this.loadLocalities();
+    await this.loadGenres();
+    await this.loadTags();
   }
 
   async loadLocalities() {
@@ -88,6 +129,159 @@ export class CreateStoryComponent implements OnInit {
     } catch (error: any) {
       this.errorMessage = 'Failed to load localities';
     }
+  }
+
+  async loadGenres() {
+    try {
+      this.genres = await this.storyService.getGenres();
+    } catch (error: any) {
+      this.errorMessage = 'Failed to load genres';
+    }
+  }
+
+  async loadTags() {
+    try {
+      this.availableTags = await this.storyService.getTags();
+    } catch (error: any) {
+      this.errorMessage = 'Failed to load tags';
+    }
+  }
+
+  // Main characters management
+  get mainCharacters(): FormArray {
+    const form = this.storyType === 'text' ? this.storyForm : this.audioStoryForm;
+    return form.get('main_characters') as FormArray;
+  }
+
+  addCharacter() {
+    if (this.mainCharacters.length < 10) {
+      this.mainCharacters.push(this.fb.control('', Validators.required));
+    }
+  }
+
+  removeCharacter(index: number) {
+    this.mainCharacters.removeAt(index);
+  }
+
+  // Cover image management
+  onCoverImageSelect(event: any) {
+    const file: File = event.target.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        this.errorMessage = 'Please select a valid image file';
+        return;
+      }
+      if (file.size > this.maxImageSize) {
+        this.errorMessage = 'Cover image must be less than 2MB';
+        return;
+      }
+      
+      this.coverImage = file;
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.coverImagePreview = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  removeCoverImage() {
+    this.coverImage = null;
+    this.coverImagePreview = '';
+  }
+
+  // Story inline images management
+  onStoryImageSelect(event: any) {
+    const files: FileList = event.target.files;
+    
+    for (let i = 0; i < files.length && this.storyImages.length < this.maxStoryImages; i++) {
+      const file = files[i];
+      
+      if (!file.type.startsWith('image/')) {
+        this.errorMessage = 'Please select valid image files only';
+        continue;
+      }
+      
+      if (file.size > this.maxImageSize) {
+        this.errorMessage = `Image ${file.name} is too large (max 2MB)`;
+        continue;
+      }
+      
+      const reader = new FileReader();
+      reader.onload = (e: any) => {
+        this.storyImages.push({
+          file: file,
+          preview: e.target.result,
+          caption: ''
+        });
+      };
+      reader.readAsDataURL(file);
+    }
+    
+    if (this.storyImages.length >= this.maxStoryImages) {
+      this.errorMessage = `Maximum ${this.maxStoryImages} images allowed`;
+    }
+  }
+
+  insertImageAtCursor(imageIndex: number) {
+    const img = this.storyImages[imageIndex];
+    const imgTag = `<div class="story-inline-image" data-image-index="${imageIndex}"><img src="${img.preview}" alt="${img.caption || 'Story image'}"/>${img.caption ? `<p class="image-caption">${img.caption}</p>` : ''}</div>`;
+    
+    if (this.richTextEditor) {
+      const selection = window.getSelection();
+      if (selection && selection.rangeCount > 0) {
+        const range = selection.getRangeAt(0);
+        const fragment = range.createContextualFragment(imgTag);
+        range.insertNode(fragment);
+        
+        // Update form content
+        this.editorContent = this.richTextEditor.nativeElement.innerHTML;
+        this.storyForm.patchValue({ content: this.richTextEditor.nativeElement.innerText || '' });
+      }
+    }
+  }
+
+  removeStoryImage(index: number) {
+    this.storyImages.splice(index, 1);
+  }
+
+  // Tags management
+  addTag() {
+    const tagName = this.tagInput.trim().toLowerCase();
+    if (!tagName) return;
+    
+    // Check if tag already selected
+    if (this.selectedTags.some(t => t.name.toLowerCase() === tagName)) {
+      this.tagInput = '';
+      return;
+    }
+    
+    // Find existing tag or create new
+    let tag = this.availableTags.find(t => t.name.toLowerCase() === tagName);
+    if (!tag) {
+      tag = { name: tagName };
+    }
+    
+    this.selectedTags.push(tag);
+    this.tagInput = '';
+  }
+
+  selectTag(tag: Tag) {
+    if (!this.selectedTags.some(t => t.name === tag.name)) {
+      this.selectedTags.push(tag);
+    }
+  }
+
+  removeTag(index: number) {
+    this.selectedTags.splice(index, 1);
+  }
+
+  filterTags(): Tag[] {
+    if (!this.tagInput) return this.availableTags.slice(0, 10);
+    const input = this.tagInput.toLowerCase();
+    return this.availableTags
+      .filter(t => t.name.toLowerCase().includes(input) && !this.selectedTags.some(st => st.name === t.name))
+      .slice(0, 10);
   }
 
   selectStoryType(type: 'text' | 'audio') {
@@ -270,7 +464,13 @@ export class CreateStoryComponent implements OnInit {
   onEditorInput(event: Event) {
     const target = event.target as HTMLElement;
     this.editorContent = target.innerHTML;
-    this.storyForm.patchValue({ content: target.innerText || '' });
+    
+    // If there are inline images, save HTML content; otherwise save plain text
+    if (this.storyImages.length > 0) {
+      this.storyForm.patchValue({ content: this.editorContent });
+    } else {
+      this.storyForm.patchValue({ content: target.innerText || '' });
+    }
   }
 
   private getFileType(mimeType: string): string {
@@ -290,17 +490,36 @@ export class CreateStoryComponent implements OnInit {
 
       try {
         if (this.storyType === 'text') {
-          await this.storyService.createStory(this.storyForm.value, this.selectedFiles);
+          const storyData = {
+            ...this.storyForm.value,
+            // Use HTML content if inline images exist, otherwise use plain text
+            content: this.storyImages.length > 0 ? this.editorContent : this.storyForm.value.content,
+            main_characters: this.mainCharacters.value.filter((c: string) => c.trim())
+          };
+          
+          await this.storyService.createEnhancedStory(
+            storyData,
+            this.selectedFiles,
+            this.coverImage,
+            this.storyImages,
+            this.selectedTags
+          );
           this.successMessage = 'Story submitted for review!';
         } else if (this.storyType === 'audio') {
           const audioFileToUpload = this.audioFile || (this.recordedBlob ? new File([this.recordedBlob], this.audioFileName, { type: this.recordedBlob.type }) : null);
           
           if (audioFileToUpload) {
-            await this.storyService.createAudioStory(
-              this.audioStoryForm.value.title,
-              this.audioStoryForm.value.locality_id,
+            const storyData = {
+              ...this.audioStoryForm.value,
+              main_characters: this.mainCharacters.value.filter((c: string) => c.trim())
+            };
+            
+            await this.storyService.createEnhancedAudioStory(
+              storyData,
               audioFileToUpload,
-              this.audioDuration
+              this.audioDuration,
+              this.coverImage,
+              this.selectedTags
             );
             this.successMessage = 'Audio story submitted for review!';
           }

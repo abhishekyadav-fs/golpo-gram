@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { StoryService } from '../../services/story.service';
 
 @Component({
@@ -17,7 +18,8 @@ export class StoryDetailComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private storyService: StoryService
+    private storyService: StoryService,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -31,6 +33,9 @@ export class StoryDetailComponent implements OnInit {
     try {
       this.isLoading = true;
       this.story = await this.storyService.getStoryById(id);
+      console.log('Story loaded:', this.story);
+      console.log('Story images:', this.story?.story_images);
+      console.log('Has inline images:', this.hasInlineImages());
       this.isLoading = false;
     } catch (error: any) {
       this.errorMessage = error.message || 'Failed to load story';
@@ -51,6 +56,36 @@ export class StoryDetailComponent implements OnInit {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  getStoryContentWithImages(): SafeHtml {
+    if (!this.story || !this.story.content) return '';
+    
+    // If story has inline images, the content is HTML with image placeholders
+    if (this.story.story_images && this.story.story_images.length > 0) {
+      let content = this.story.content;
+      
+      // Replace any placeholder image tags with actual images
+      this.story.story_images.forEach((img: any, index: number) => {
+        const placeholder = `data-image-index="${index}"`;
+        if (content.includes(placeholder)) {
+          const imgTag = `<div class="story-inline-image" data-image-index="${index}">
+            <img src="${img.image_url}" alt="${img.image_caption || 'Story image'}"/>
+            ${img.image_caption ? `<p class="image-caption">${img.image_caption}</p>` : ''}
+          </div>`;
+          content = content.replace(new RegExp(`<div[^>]*${placeholder}[^>]*>.*?</div>`, 'gs'), imgTag);
+        }
+      });
+      
+      // Bypass security since we trust the content (it's from our database)
+      return this.sanitizer.bypassSecurityTrustHtml(content);
+    }
+    
+    return this.story.content;
+  }
+
+  hasInlineImages(): boolean {
+    return this.story && this.story.story_images && this.story.story_images.length > 0;
   }
 
   goBack(): void {

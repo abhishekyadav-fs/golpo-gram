@@ -30,6 +30,7 @@ export class AdminStorytellersComponent implements OnInit, OnDestroy {
   loadingStories: boolean = false;
   selectedStory: Story | null = null;
   showDeleteStoryConfirm: boolean = false;
+  expandedBios: Map<string, boolean> = new Map();
   private eventSubscriptions: Subscription[] = [];
 
   constructor(
@@ -206,7 +207,7 @@ export class AdminStorytellersComponent implements OnInit, OnDestroy {
   }
 
   getProfileImage(storyteller: Storyteller): string {
-    return storyteller.storyteller_photo_url || 'assets/default-avatar.svg';
+    return storyteller.profile_image_url || storyteller.storyteller_photo_url || 'assets/default-avatar.svg';
   }
 
   formatDate(date: string): string {
@@ -217,12 +218,37 @@ export class AdminStorytellersComponent implements OnInit, OnDestroy {
     });
   }
 
+  getTruncatedBio(bio: string, storytellerId: string): string {
+    const isExpanded = this.expandedBios.get(storytellerId);
+    if (isExpanded || !bio) return bio;
+    
+    const words = bio.split(' ');
+    if (words.length <= 150) return bio;
+    
+    return words.slice(0, 150).join(' ') + '...';
+  }
+
+  shouldShowReadMore(bio: string): boolean {
+    return !!bio && bio.split(' ').length > 150;
+  }
+
+  toggleBio(storytellerId: string): void {
+    const current = this.expandedBios.get(storytellerId) || false;
+    this.expandedBios.set(storytellerId, !current);
+  }
+
+  isBioExpanded(storytellerId: string): boolean {
+    return this.expandedBios.get(storytellerId) || false;
+  }
+
   async viewStories(storyteller: Storyteller) {
     this.selectedStoryteller = storyteller;
     this.showStoriesModal = true;
     this.loadingStories = true;
     try {
-      this.storytellerStories = await this.storyService.getStoriesByAuthor(storyteller.id, '');
+      // Fetch all stories regardless of status for admin view
+      const allStories = await this.storyService.getAllStoriesByAuthor(storyteller.id);
+      this.storytellerStories = allStories;
     } catch (err) {
       alert('Failed to load stories');
       console.error(err);
@@ -262,6 +288,23 @@ export class AdminStorytellersComponent implements OnInit, OnDestroy {
       }
     } catch (err) {
       alert('Failed to delete story');
+      console.error(err);
+    }
+  }
+
+  async sendToReview(story: Story) {
+    const reason = prompt('Enter reason for sending to review (optional):');
+    
+    try {
+      await this.adminService.sendStoryToReview(story.id!, reason || undefined);
+      alert('Story sent to moderation queue successfully');
+      // Refresh the stories list
+      if (this.selectedStoryteller) {
+        await this.viewStories(this.selectedStoryteller);
+        await this.loadStorytellers();
+      }
+    } catch (err) {
+      alert('Failed to send story to review');
       console.error(err);
     }
   }
