@@ -1,6 +1,11 @@
 <div class="auth-container">
   <div class="auth-card">
-    <h1 class="auth-title"><span class="text-primary">Golpo</span>gram</h1>
+    <div class="auth-header">
+      <a routerLink="/feed" class="auth-title-link">
+        <img src="assets/logo.svg" alt="Golpogram" class="auth-logo">
+        <h1 class="auth-title"><span class="text-primary">Golpo</span>gram</h1>
+      </a>
+    </div>
     <h2 class="auth-subtitle">Sign In</h2>
 
     <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="auth-form">

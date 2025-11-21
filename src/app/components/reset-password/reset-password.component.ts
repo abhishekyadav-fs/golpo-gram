@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-reset-password',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './reset-password.component.html',
   styleUrls: ['./reset-password.component.scss']
 })
@@ -16,6 +16,7 @@ export class ResetPasswordComponent implements OnInit {
   isLoading = false;
   errorMessage = '';
   successMessage = '';
+  hasValidToken = false;
 
   constructor(
     private fb: FormBuilder,
@@ -29,13 +30,30 @@ export class ResetPasswordComponent implements OnInit {
     }, { validators: this.passwordMatchValidator });
   }
 
-  ngOnInit(): void {
-    // Check if we have access token from the reset link
+  async ngOnInit(): Promise<void> {
+    // Wait a moment for Supabase to process the hash fragment
+    await new Promise(resolve => setTimeout(resolve, 100));
+    
+    // Check if we have access token or error in the URL hash
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const accessToken = hashParams.get('access_token');
+    const error = hashParams.get('error');
+    const errorDescription = hashParams.get('error_description');
     
-    if (!accessToken) {
-      this.errorMessage = 'Invalid or expired reset link. Please request a new one.';
+    if (error) {
+      this.errorMessage = errorDescription || 'Invalid or expired reset link. Please request a new one.';
+      this.hasValidToken = false;
+    } else if (accessToken) {
+      this.hasValidToken = true;
+    } else {
+      // Check if user has an active session (recovery session)
+      const { data } = await this.authService.getSupabaseClient().auth.getSession();
+      if (data.session) {
+        this.hasValidToken = true;
+      } else {
+        this.errorMessage = 'Invalid or expired reset link. Please request a new one.';
+        this.hasValidToken = false;
+      }
     }
   }
 
@@ -51,7 +69,7 @@ export class ResetPasswordComponent implements OnInit {
   }
 
   async onSubmit() {
-    if (this.resetPasswordForm.invalid) {
+    if (this.resetPasswordForm.invalid || !this.hasValidToken) {
       return;
     }
 
@@ -65,9 +83,13 @@ export class ResetPasswordComponent implements OnInit {
       await this.authService.updatePassword(newPassword);
       this.successMessage = 'Password updated successfully! Redirecting to login...';
       
+      // Sign out the user after password reset
+      await this.authService.signOut();
+      
+      // Redirect to login page
       setTimeout(() => {
         this.router.navigate(['/login']);
-      }, 2000);
+      }, 1500);
     } catch (error: any) {
       this.errorMessage = error.message || 'Failed to update password. Please try again.';
     } finally {
