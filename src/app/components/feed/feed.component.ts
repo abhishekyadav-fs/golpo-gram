@@ -179,6 +179,10 @@ export class FeedComponent implements OnInit {
     console.log('Filter by type:', type);
   }
 
+  scrollToTop() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
   logout() {
     this.authService.signOut();
     this.router.navigate(['/login']);

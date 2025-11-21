@@ -5,16 +5,16 @@
   </div>
   
   <div class="header-actions">
-    <button *ngIf="authService.isAuthenticated()" class="btn-icon" (click)="navigateToCreate()" title="Create Story">
+    <button *ngIf="authService.isAuthenticated()" class="btn-icon desktop-only" (click)="navigateToCreate()" title="Create Story">
       add
     </button>
-    <button *ngIf="authService.isModerator()" class="btn-icon" routerLink="/moderation" title="Moderation">
+    <button *ngIf="authService.isModerator()" class="btn-icon desktop-only" routerLink="/moderation" title="Moderation">
       settings
     </button>
-    <button *ngIf="authService.isAuthenticated()" class="btn-icon" routerLink="/my-stories" title="My Stories">
+    <button *ngIf="authService.isAuthenticated()" class="btn-icon desktop-only" routerLink="/my-stories" title="My Stories">
       edit_note
     </button>
-    <button *ngIf="authService.isAuthenticated()" class="btn-icon" routerLink="/profile" title="Profile">
+    <button *ngIf="authService.isAuthenticated()" class="btn-icon desktop-only" routerLink="/profile" title="Profile">
       person
     </button>
     <button *ngIf="authService.isAuthenticated()" class="btn-icon" (click)="logout()" title="Logout">
@@ -25,3 +25,23 @@
     </button>
   </div>
 </header>
+
+<!-- Mobile Navigation Bar -->
+<nav *ngIf="authService.isAuthenticated()" class="mobile-nav">
+  <button class="mobile-nav-btn" (click)="navigateToCreate()" title="Create Story">
+    <span class="material-symbols-outlined">add</span>
+    <span class="nav-label">Create</span>
+  </button>
+  <button *ngIf="authService.isModerator()" class="mobile-nav-btn" routerLink="/moderation" routerLinkActive="active" title="Moderation">
+    <span class="material-symbols-outlined">settings</span>
+    <span class="nav-label">Moderate</span>
+  </button>
+  <button class="mobile-nav-btn" routerLink="/my-stories" routerLinkActive="active" title="My Stories">
+    <span class="material-symbols-outlined">edit_note</span>
+    <span class="nav-label">My Stories</span>
+  </button>
+  <button class="mobile-nav-btn" routerLink="/profile" routerLinkActive="active" title="Profile">
+    <span class="material-symbols-outlined">person</span>
+    <span class="nav-label">Profile</span>
+  </button>
+</nav>
