@@ -204,6 +204,10 @@
           (input)="onEditorInput($event)"
           [attr.data-placeholder]="'Tell your story...'"
         ></div>
+        <div class="word-count" [class.word-limit-exceeded]="wordCount > maxWords">
+          {{ wordCount }}/{{ maxWords }} words
+          <span *ngIf="wordCount > maxWords" class="limit-warning">Word limit exceeded!</span>
+        </div>
         <div class="error-message" *ngIf="storyForm.get('content')?.invalid && storyForm.get('content')?.touched">
           <span *ngIf="storyForm.get('content')?.errors?.['required']">Content is required</span>
           <span *ngIf="storyForm.get('content')?.errors?.['minlength']">Content must be at least 20 characters</span>

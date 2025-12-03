@@ -31,6 +31,8 @@ export class CreateStoryComponent implements OnInit {
   successMessage = '';
   editorContent = '';
   userName: string = '';
+  wordCount = 0;
+  maxWords = 2000;
 
   // Cover image
   coverImage: File | null = null;
@@ -463,14 +465,40 @@ export class CreateStoryComponent implements OnInit {
 
   onEditorInput(event: Event) {
     const target = event.target as HTMLElement;
+    const text = target.innerText || '';
+    
+    // Count words
+    this.wordCount = this.countWords(text);
+    
+    // Check word limit
+    if (this.wordCount > this.maxWords) {
+      // Prevent further input by reverting to previous content
+      target.innerHTML = this.editorContent;
+      // Place cursor at end
+      const range = document.createRange();
+      const selection = window.getSelection();
+      range.selectNodeContents(target);
+      range.collapse(false);
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+      return;
+    }
+    
     this.editorContent = target.innerHTML;
     
     // If there are inline images, save HTML content; otherwise save plain text
     if (this.storyImages.length > 0) {
       this.storyForm.patchValue({ content: this.editorContent });
     } else {
-      this.storyForm.patchValue({ content: target.innerText || '' });
+      this.storyForm.patchValue({ content: text });
     }
+  }
+  
+  countWords(text: string): number {
+    // Remove extra whitespace and count words
+    const trimmed = text.trim();
+    if (!trimmed) return 0;
+    return trimmed.split(/\s+/).length;
   }
 
   private getFileType(mimeType: string): string {

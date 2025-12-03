@@ -109,6 +109,11 @@ export class FeedComponent implements OnInit {
   applyFilters() {
     let filtered = [...this.allStories];
 
+    // Filter by story type (text, audio, or all)
+    if (this.selectedType !== 'all') {
+      filtered = filtered.filter(story => story.story_type === this.selectedType);
+    }
+
     // Filter by storyteller search
     if (this.storytellerSearch.trim()) {
       const searchTerm = this.storytellerSearch.toLowerCase();
@@ -119,8 +124,19 @@ export class FeedComponent implements OnInit {
 
     this.stories = filtered;
     
-    if (this.stories.length === 0 && this.storytellerSearch.trim()) {
-      this.noStoriesMessage = `No stories found for storyteller "${this.storytellerSearch}"`;
+    if (this.stories.length === 0) {
+      if (this.storytellerSearch.trim()) {
+        this.noStoriesMessage = `No stories found for storyteller "${this.storytellerSearch}"`;
+      } else if (this.selectedType !== 'all') {
+        const selectedLocality = this.localities.find(l => l.id === this.selectedLocalityId);
+        const typeLabel = this.selectedType === 'text' ? 'text' : 'audio';
+        this.noStoriesMessage = `No ${typeLabel} stories available for ${selectedLocality?.name || 'this locality'} yet.`;
+      } else {
+        const selectedLocality = this.localities.find(l => l.id === this.selectedLocalityId);
+        this.noStoriesMessage = `No stories available for ${selectedLocality?.name || 'this locality'} yet. Be the first to share!`;
+      }
+    } else {
+      this.noStoriesMessage = '';
     }
   }
 
@@ -256,9 +272,7 @@ export class FeedComponent implements OnInit {
 
   filterByType(type: string) {
     this.selectedType = type;
-    // TODO: Implement filtering logic based on media type
-    // For now, this just sets the active state
-    console.log('Filter by type:', type);
+    this.applyFilters();
   }
 
   scrollToTop() {

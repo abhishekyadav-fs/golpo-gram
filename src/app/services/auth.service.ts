@@ -1,56 +1,8 @@
 import { Injectable } from '@angular/core';
-import { createClient, SupabaseClient, AuthChangeEvent, Session } from '@supabase/supabase-js';
-import { environment } from '../../environments/environment';
+import { SupabaseClient, AuthChangeEvent, Session } from '@supabase/supabase-js';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { User } from '../models/user.model';
-
-// Clear all Supabase locks and old data IMMEDIATELY when module loads
-// This runs before any Angular initialization
-try {
-  const keysToRemove: string[] = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key && (key.includes('sb-') || key.includes('supabase') || key.includes('lock:'))) {
-      keysToRemove.push(key);
-    }
-  }
-  keysToRemove.forEach(key => {
-    try {
-      localStorage.removeItem(key);
-    } catch (e) {
-      console.warn('Could not remove key:', key, e);
-    }
-  });
-  console.log('Cleared Supabase locks and old data');
-} catch (e) {
-  console.warn('Could not clear old Supabase data:', e);
-}
-
-// Custom storage adapter to avoid lock issues
-const customStorageAdapter = {
-  getItem: (key: string) => {
-    try {
-      return localStorage.getItem(key);
-    } catch (e) {
-      console.warn('Error reading from localStorage:', e);
-      return null;
-    }
-  },
-  setItem: (key: string, value: string) => {
-    try {
-      localStorage.setItem(key, value);
-    } catch (e) {
-      console.warn('Error writing to localStorage:', e);
-    }
-  },
-  removeItem: (key: string) => {
-    try {
-      localStorage.removeItem(key);
-    } catch (e) {
-      console.warn('Error removing from localStorage:', e);
-    }
-  }
-};
+import { SupabaseService } from './supabase.service';
 
 @Injectable({
   providedIn: 'root'
@@ -66,27 +18,13 @@ export class AuthService {
   private isInitialized = false;
   private initPromise: Promise<void> | null = null;
 
-  constructor() {
+  constructor(private supabaseService: SupabaseService) {
     // Singleton pattern - ensure only one instance
     if (AuthService.instance) {
       return AuthService.instance;
     }
     
-    this.supabase = createClient(environment.supabase.url, environment.supabase.anonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-        flowType: 'pkce',
-        storage: customStorageAdapter,
-        storageKey: 'golpogram-auth',
-        // Disable lock to prevent NavigatorLockAcquireTimeoutError
-        lock: async (name, acquireTimeout, fn) => {
-          // Simple implementation without actual locking
-          return await fn();
-        }
-      }
-    });
+    this.supabase = this.supabaseService.getClient();
     
     AuthService.instance = this;
     this.initialize();

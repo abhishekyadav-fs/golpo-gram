@@ -15,103 +15,154 @@
       Back to Feed
     </button>
 
-    <header class="story-header">
-      <h1 class="story-title">{{ story.title }}</h1>
-      
-      <div class="story-meta">
-        <span class="meta-item clickable-author" (click)="goToStorytellerProfile()">
-          <span class="material-symbols-outlined">person</span>
-          {{ story.author_name }}
-        </span>
-        <span class="meta-item">
-          <span class="material-symbols-outlined">location_on</span>
-          {{ story.locality_name }}
-        </span>
-        <span class="meta-item">
-          <span class="material-symbols-outlined">calendar_today</span>
-          {{ formatDate(story.created_at) }}
-        </span>
-      </div>
+    <div class="story-layout">
+      <!-- Main Content Column -->
+      <div class="story-main">
+        <header class="story-header">
+          <h1 class="story-title">{{ story.title }}</h1>
+          
+          <!-- Description -->
+          <p class="story-description" *ngIf="story.description">
+            {{ story.description }}
+          </p>
 
-      <div class="story-badges">
-        <span class="badge badge-type">{{ story.story_type || 'text' }}</span>
-        <span class="badge badge-status" [class.approved]="story.status === 'approved'">
-          {{ story.status }}
-        </span>
-      </div>
+          <!-- Main Characters -->
+          <div class="story-characters" *ngIf="story.main_characters && story.main_characters.length > 0">
+            <h4>
+              <span class="material-symbols-outlined">group</span>
+              Characters
+            </h4>
+            <div class="characters-list">
+              <span class="character-name" *ngFor="let character of story.main_characters">
+                {{ character }}
+              </span>
+            </div>
+          </div>
+        </header>
 
-      <!-- Display metadata badges -->
-      <div class="story-metadata" *ngIf="story.genre || story.language || story.description">
-        <span class="metadata-badge" *ngIf="story.genre">
-          <span class="material-symbols-outlined">category</span>
-          {{ story.genre }}
-        </span>
-        <span class="metadata-badge" *ngIf="story.language">
-          <span class="material-symbols-outlined">language</span>
-          {{ story.language }}
-        </span>
-      </div>
+        <div class="story-content">
+          <!-- Cover Image -->
+          <div class="story-cover" *ngIf="story.cover_image_url">
+            <img [src]="story.cover_image_url" [alt]="story.title + ' cover'" />
+          </div>
 
-      <!-- Description -->
-      <p class="story-description" *ngIf="story.description">
-        {{ story.description }}
-      </p>
+          <!-- Audio Story Player -->
+          <div *ngIf="story.story_type === 'audio' && story.audio_url" class="audio-story-section">
+            <div class="audio-player-container">
+              <h3>Audio Story</h3>
+              <audio controls class="audio-player">
+                <source [src]="story.audio_url" type="audio/webm">
+                <source [src]="story.audio_url" type="audio/mpeg">
+                <source [src]="story.audio_url" type="audio/wav">
+                Your browser does not support the audio element.
+              </audio>
+              <div class="audio-info" *ngIf="story.audio_duration">
+                <span class="material-symbols-outlined">schedule</span>
+                <span>Duration: {{ formatDuration(story.audio_duration) }}</span>
+              </div>
+            </div>
+          </div>
 
-      <!-- Tags -->
-      <div class="story-tags" *ngIf="story.tags && story.tags.length > 0">
-        <span class="tag-chip" *ngFor="let tag of story.tags">
-          {{ tag.name }}
-        </span>
-      </div>
-
-      <!-- Main Characters -->
-      <div class="story-characters" *ngIf="story.main_characters && story.main_characters.length > 0">
-        <h4>
-          <span class="material-symbols-outlined">group</span>
-          Characters
-        </h4>
-        <div class="characters-list">
-          <span class="character-name" *ngFor="let character of story.main_characters">
-            {{ character }}
-          </span>
+          <!-- Text Content with Inline Images -->
+          <div *ngIf="story.content && hasInlineImages()" class="story-text" [innerHTML]="getStoryContentWithImages()"></div>
+          
+          <!-- Plain Text Content (no inline images) -->
+          <p *ngIf="story.content && !hasInlineImages()" class="story-text">{{ story.content }}</p>
         </div>
       </div>
-    </header>
 
-    <div class="story-content">
-      <!-- Cover Image -->
-      <div class="story-cover" *ngIf="story.cover_image_url">
-        <img [src]="story.cover_image_url" [alt]="story.title + ' cover'" />
-      </div>
+      <!-- Author Details Sidebar -->
+      <aside class="story-sidebar">
+        <div class="author-card">
+          <div class="author-header" (click)="goToStorytellerProfile()">
+            <div class="author-avatar">
+              <span class="material-symbols-outlined">person</span>
+            </div>
+            <div class="author-info">
+              <div class="author-label">Author</div>
+              <div class="author-name">{{ story.author_name }}</div>
+            </div>
+          </div>
 
-      <!-- Audio Story Player -->
-      <div *ngIf="story.story_type === 'audio' && story.audio_url" class="audio-story-section">
-        <div class="audio-player-container">
-          <h3>Audio Story</h3>
-          <audio controls class="audio-player">
-            <source [src]="story.audio_url" type="audio/webm">
-            <source [src]="story.audio_url" type="audio/mpeg">
-            <source [src]="story.audio_url" type="audio/wav">
-            Your browser does not support the audio element.
-          </audio>
-          <div class="audio-info" *ngIf="story.audio_duration">
-            <span class="material-symbols-outlined">schedule</span>
-            <span>Duration: {{ formatDuration(story.audio_duration) }}</span>
+          <div class="story-metadata">
+            <div class="metadata-item">
+              <span class="material-symbols-outlined">location_on</span>
+              <span>{{ story.locality_name }}</span>
+            </div>
+            <div class="metadata-item">
+              <span class="material-symbols-outlined">calendar_today</span>
+              <span>{{ formatDate(story.created_at) }}</span>
+            </div>
+            <div class="metadata-item" *ngIf="story.genre">
+              <span class="material-symbols-outlined">category</span>
+              <span>{{ story.genre }}</span>
+            </div>
+            <div class="metadata-item" *ngIf="story.language">
+              <span class="material-symbols-outlined">language</span>
+              <span>{{ story.language }}</span>
+            </div>
+            <div class="metadata-item">
+              <span class="material-symbols-outlined">{{ story.story_type === 'audio' ? 'mic' : 'edit_note' }}</span>
+              <span>{{ story.story_type || 'text' }}</span>
+            </div>
+          </div>
+
+          <!-- Story Stats -->
+          <div class="story-stats-section">
+            <div class="stat-item">
+              <span class="material-symbols-outlined">visibility</span>
+              <div class="stat-info">
+                <span class="stat-value">{{ storyStats.total_reads }}</span>
+                <span class="stat-label">reads</span>
+              </div>
+            </div>
+            <div class="stat-item">
+              <span class="material-symbols-outlined">thumb_up</span>
+              <div class="stat-info">
+                <span class="stat-value">{{ storyStats.thumbs_up }}</span>
+                <span class="stat-label">{{ storyStats.thumbs_up_percentage }}%</span>
+              </div>
+            </div>
+            <div class="stat-item">
+              <span class="material-symbols-outlined">thumb_down</span>
+              <div class="stat-info">
+                <span class="stat-value">{{ storyStats.thumbs_down }}</span>
+                <span class="stat-label">{{ storyStats.thumbs_down_percentage }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Review Actions -->
+          <div class="review-actions" *ngIf="currentUserId">
+            <button 
+              class="btn-review" 
+              [class.active]="userReview === 'thumbs_up'"
+              [disabled]="isSubmittingReview || (userReview !== null && userReview !== 'thumbs_up')"
+              (click)="submitReview('thumbs_up')"
+              [title]="userReview && userReview !== 'thumbs_up' ? 'Already reviewed' : 'Like this story'">
+              <span class="material-symbols-outlined">thumb_up</span>
+            </button>
+            <button 
+              class="btn-review" 
+              [class.active]="userReview === 'thumbs_down'"
+              [disabled]="isSubmittingReview || (userReview !== null && userReview !== 'thumbs_down')"
+              (click)="submitReview('thumbs_down')"
+              [title]="userReview && userReview !== 'thumbs_down' ? 'Already reviewed' : 'Dislike this story'">
+              <span class="material-symbols-outlined">thumb_down</span>
+            </button>
+          </div>
+
+          <!-- Tags -->
+          <div class="story-tags" *ngIf="story.tags && story.tags.length > 0">
+            <div class="tags-label">Tags</div>
+            <div class="tags-container">
+              <span class="tag-chip" *ngFor="let tag of story.tags">
+                {{ tag.name }}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
-
-      <!-- Text Content with Inline Images -->
-      <div *ngIf="story.content && hasInlineImages()" class="story-text" [innerHTML]="getStoryContentWithImages()"></div>
-      
-      <!-- Plain Text Content (no inline images) -->
-      <p *ngIf="story.content && !hasInlineImages()" class="story-text">{{ story.content }}</p>
+      </aside>
     </div>
-
-    <footer class="story-footer">
-      <div class="story-stats">
-        <span>Views: {{ story.view_count || 0 }}</span>
-      </div>
-    </footer>
   </article>
 </div>
